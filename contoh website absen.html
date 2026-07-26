@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Absensi Mengajar</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f4f6f9; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1, h2 { text-align: center; color: #2c3e50; }
+        .filter-section { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; background: #eef2f7; padding: 15px; border-radius: 6px; }
+        label { font-weight: bold; margin-bottom: 5px; display: block; }
+        select, input, button { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+        button { background-color: #3498db; color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        button:hover { background-color: #2980b9; }
+        .btn-success { background-color: #2ecc71; }
+        .btn-success:hover { background-color: #27ae60; }
+        .input-murid-section { margin-top: 20px; padding: 15px; border: 1px dashed #3498db; border-radius: 6px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #34495e; color: white; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .radio-group { display: flex; gap: 15px; }
+        .radio-group label { font-weight: normal; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📋 Sistem Absensi Guru</h1>
+    
+    <!-- Filter Kelas dan Minggu -->
+    <div class="filter-section">
+        <div>
+            <label for="pilihJadwal">Pilih Jadwal & Kelas:</label>
+            <select id="pilihJadwal" onchange="muatHalaman()"></select>
+        </div>
+        <div>
+            <label for="pilihMinggu">Minggu Ke-:</label>
+            <select id="pilihMinggu" onchange="muatHalaman()">
+                <option value="Minggu 1">Minggu 1</option>
+                <option value="Minggu 2">Minggu 2</option>
+                <option value="Minggu 3">Minggu 3</option>
+                <option value="Minggu 4">Minggu 4</option>
+                <option value="Minggu 5">Minggu 5</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Detail Kelas Aktif -->
+    <div id="detailKelas" style="background: #34495e; color: white; padding: 10px; border-radius: 4px; margin-bottom: 20px; font-weight: bold;"></div>
+
+    <!-- Input Nama Murid -->
+    <div class="input-murid-section">
+        <h3>➕ Tambah Murid ke Kelas Ini</h3>
+        <div style="display: flex; gap: 10px;">
+            <input type="text" id="namaMuridBaru" placeholder="Masukkan nama lengkap murid...">
+            <button onclick="tambahMurid()" style="width: 150px;">Tambah</button>
+        </div>
+    </div>
+
+    <!-- Tabel Absensi -->
+    <h2>Daftar Hadir Murid</h2>
+    <table id="tabelAbsensi">
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>Nama Murid</th>
+                <th>Status Kehadiran</th>
+            </tr>
+        </thead>
+        <tbody id="wadahMurid">
+            <!-- Data murid akan muncul di sini via JavaScript -->
+        </tbody>
+    </table>
+
+    <div style="margin-top: 20px;">
+        <button class="btn-success" onclick="simpanAbsensi()">💾 Simpan Absensi Minggu Ini</button>
+    </div>
+</div>
+
+<script>
+    // Database Jadwal sesuai request
+    const daftarJadwal = [
+        { id: "senin_jaringan", teks: "SENIN: Jaringan & Komputer (TB22) - 10 TKJ [11.20 - 13.50] R.7" },
+        { id: "senin_inf", teks: "SENIN: Informatika & Simdig (K22) - 10 TAB A [09.40 - 10.50] R.7" },
+        { id: "selasa_pemdas", teks: "SELASA: Pemrograman Dasar (TC22) - 10 TKJ [08.40 - 09.50] R.7" },
+        { id: "selasa_desain", teks: "SELASA: Dasar Desain Grafis (TE22) - 10 TKJ [11.30 - 12.50] R.7" },
+        { id: "rabu_otkp", teks: "RABU: Informatika & Simdig (K22) - 10 OTKP [07.30 - 08.40] R.6" },
+        { id: "rabu_geo", teks: "RABU: Informatika & Simdig (K22) - 10 GEO [08.40 - 09.50] R.10" },
+        { id: "rabu_sisko", teks: "RABU: Sistem Komputer & Inf (TA22) - 10 TKJ [10.20 - 12.50] R.7" },
+        { id: "kamis_smp", teks: "KAMIS: Informatika & Simdig (K22) - 9 SMP [10.20 - 12.50] R.5" }
+    ];
+
+    // Inisialisasi Pilihan Dropdown Jadwal saat halaman dibuka
+    const selectJadwal = document.getElementById("pilihJadwal");
+    daftarJadwal.forEach(j => {
+        let opt = document.createElement("option");
+        opt.value = j.id;
+        opt.textContent = j.teks;
+        selectJadwal.appendChild(opt);
+    });
+
+    // Fungsi Utama untuk memuat data berdasarkan Kelas & Minggu yang dipilih
+    function muatHalaman() {
+        const kelasId = document.getElementById("pilihJadwal").value;
+        const minggu = document.getElementById("pilihMinggu").value;
+        
+        // Tampilkan info kelas aktif
+        const jadwalAktif = daftarJadwal.find(j => j.id === kelasId);
+        document.getElementById("detailKelas").innerText = `Kini Mengakses ➔ ${jadwalAktif.teks} | ${minggu}`;
+
+        // Ambil data nama murid permanen untuk kelas ini
+        let masterMurid = JSON.parse(localStorage.getItem(`murid_${kelasId}`)) || [];
+        
+        // Ambil data absensi spesifik kelas ini pada minggu ini
+        let absensiMingguIni = JSON.parse(localStorage.getItem(`absensi_${kelasId}_${minggu}`)) || {};
+
+        const wadah = document.getElementById("wadahMurid");
+        wadah.innerHTML = "";
+
+        if(masterMurid.length === 0) {
+            wadah.innerHTML = `<tr><td colspan="3" style="text-align:center; color:gray;">Belum ada data murid di kelas ini. Silakan tambah di atas.</td></tr>`;
+            return;
+        }
+
+        // Render baris tabel murid
+        masterMurid.forEach((nama, index) => {
+            let statusTerpilih = absensiMingguIni[nama] || "Hadir"; // Default Hadir jika belum diabsen
+            
+            let tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>${index + 1}</td>
+                <td><strong>${nama}</strong></td>
+                <td>
+                    <div class="radio-group">
+                        <label><input type="radio" name="status_${index}" value="Hadir" ${statusTerpilih === 'Hadir' ? 'checked' : ''}> Hadir</label>
+                        <label><input type="radio" name="status_${index}" value="Sakit" ${statusTerpilih === 'Sakit' ? 'checked' : ''}> Sakit</label>
+                        <label><input type="radio" name="status_${index}" value="Izin" ${statusTerpilih === 'Izin' ? 'checked' : ''}> Izin</label>
+                        <label><input type="radio" name="status_${index}" value="Alpa" ${statusTerpilih === 'Alpa' ? 'checked' : ''}> Alpa</label>
+                    </div>
+                </td>
+            `;
+            wadah.appendChild(tr);
+        });
+    }
+
+    // Fungsi menambah nama murid ke dalam kelas (Permanen)
+    function tambahMurid() {
+        const kelasId = document.getElementById("pilihJadwal").value;
+        const inputNama = document.getElementById("namaMuridBaru");
+        const nama = inputNama.value.trim();
+
+        if(nama === "") {
+            alert("Nama murid tidak boleh kosong!");
+            return;
+        }
+
+        let masterMurid = JSON.parse(localStorage.getItem(`murid_${kelasId}`)) || [];
+        
+        if(masterMurid.includes(nama)) {
+            alert("Nama murid ini sudah ada di kelas ini!");
+            return;
+        }
+
+        masterMurid.push(nama);
+        localStorage.setItem(`murid_${kelasId}`, JSON.stringify(masterMurid)); // Simpan permanen
+        inputNama.value = "";
+        muatHalaman();
+    }
+
+    // Fungsi menyimpan status absensi per minggu agar tidak bercampur
+    function simpanAbsensi() {
+        const kelasId = document.getElementById("pilihJadwal").value;
+        const minggu = document.getElementById("pikitMinggu" ? "pikitMinggu" : "pilihMinggu").value;
+        let masterMurid = JSON.parse(localStorage.getItem(`murid_${kelasId}`)) || [];
+        
+        let dataAbsen = {};
+        
+        masterMurid.forEach((nama, index) => {
+            let radioSebut = document.getElementsByName(`status_${index}`);
+            let nilaiStatus = "Hadir";
+            for (let radio of radioSebut) {
+                if (radio.checked) {
+                    nilaiStatus = radio.value;
+                    break;
+                }
+            }
+            dataAbsen[nama] = nilaiStatus;
+        });
+
+        // Simpan ke LocalStorage dengan key unik gabungan Kelas + Minggu
+        localStorage.setItem(`absensi_${kelasId}_${minggu}`, JSON.stringify(dataAbsen));
+        alert(`Berhasil! Absensi ${minggu} untuk kelas ini telah disimpan secara terpisah.`);
+    }
+
+    // Jalankan otomatis saat web pertama kali dibuka
+    window.onload = muatHalaman;
+</script>
+
+</body>
+</html>
