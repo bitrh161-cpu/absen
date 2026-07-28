@@ -376,6 +376,7 @@
   table.rekap-table td.total-i{color:var(--izin);font-weight:700;}
   table.rekap-table td.total-s{color:var(--sakit);font-weight:700;}
   table.rekap-table td.total-a{color:var(--alpa);font-weight:700;}
+  table.rekap-table td.total-pct{color:var(--teal-dark);font-weight:700;}
 
   #printArea{display:none;}
   @media print{
@@ -585,7 +586,13 @@
           <button class="btn btn-outline btn-sm" onclick="isiNilaiSemua()">Terapkan</button>
         </div>
         <div class="divider"></div>
+        <label for="inputCariMuridNilai">🔎 Cari Nama Murid</label>
+        <input type="text" id="inputCariMuridNilai" placeholder="Ketik nama murid, contoh: anwar" autocomplete="off">
         <div id="listNilaiMurid"></div>
+        <div class="empty-state" id="emptyCariNilai" style="display:none;">
+          <span class="emoji">🔎</span>
+          Nama murid tidak ditemukan. Coba kata kunci lain.
+        </div>
         <button class="btn btn-primary" style="margin-top:16px;" onclick="simpanNilai()">💾 Simpan Nilai</button>
       </div>
 
@@ -1338,6 +1345,7 @@ function renderNilaiList(){
   list.forEach((m, idx)=>{
     const row = document.createElement("div");
     row.className = "nilai-row";
+    row.setAttribute("data-nama", normalisasiTeks(m.name));
     const nilaiSekarang = currentNilai[m.id];
     row.innerHTML = `
       <div class="student-num">${idx+1}</div>
@@ -1375,6 +1383,33 @@ function renderNilaiList(){
       });
     });
   });
+
+  filterNilaiMuridList();
+}
+
+/* ---- FITUR CARI MURID (view Nilai) ---- */
+function normalisasiTeks(str){
+  return (str || "")
+    .toString()
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .trim();
+}
+
+function filterNilaiMuridList(){
+  const inputCari = document.getElementById("inputCariMuridNilai");
+  const q = normalisasiTeks(inputCari ? inputCari.value : "");
+  const wrap = document.getElementById("listNilaiMurid");
+  const rows = wrap.querySelectorAll(".nilai-row");
+  let jumlahTampil = 0;
+  rows.forEach(row=>{
+    const nama = row.getAttribute("data-nama") || "";
+    const cocok = q === "" || nama.includes(q);
+    row.style.display = cocok ? "" : "none";
+    if(cocok) jumlahTampil++;
+  });
+  const emptyCari = document.getElementById("emptyCariNilai");
+  if(emptyCari) emptyCari.style.display = (q !== "" && jumlahTampil === 0) ? "block" : "none";
 }
 
 function isiNilaiSemua(){
@@ -1412,9 +1447,14 @@ function simpanNilai(){
   renderRiwayatNilai();
 }
 
-selectJadwalNilai.addEventListener("change", renderNilaiList);
+selectJadwalNilai.addEventListener("change", function(){
+  const inputCari = document.getElementById("inputCariMuridNilai");
+  if(inputCari) inputCari.value = "";
+  renderNilaiList();
+});
 inputPertemuan.addEventListener("change", renderNilaiList);
 inputTanggalNilai.addEventListener("change", renderNilaiList);
+document.getElementById("inputCariMuridNilai").addEventListener("input", filterNilaiMuridList);
 renderNilaiList();
 
 /* ---- RIWAYAT NILAI ---- */
@@ -1670,7 +1710,9 @@ function buildRekapData(bulan, kelasFilter){
           if(counts[st]!==undefined) counts[st]++;
           return st;
         });
-        return {no:idx+1, nama:m.name, cells, counts};
+        const totalTercatat = counts.H + counts.I + counts.S + counts.A;
+        const persenHadir = totalTercatat>0 ? Math.round((counts.H/totalTercatat)*100) : 0;
+        return {no:idx+1, nama:m.name, cells, counts, persenHadir};
       });
       tables.push({
         judul: `${s.subject} — ${s.day}, ${s.start}-${s.end}, ${s.room}`,
@@ -1693,10 +1735,10 @@ function renderRekapHTML(data, container){
     grp.tables.forEach(t=>{
       const wrap = document.createElement("div");
       wrap.className = "rekap-group";
-      let theadCols = `<th>No</th><th style="text-align:left;">Nama Murid</th>` + t.dates.map(d=>`<th>${formatTanggalPendek(d)}</th>`).join("") + `<th>H</th><th>I</th><th>S</th><th>A</th>`;
+      let theadCols = `<th>No</th><th style="text-align:left;">Nama Murid</th>` + t.dates.map(d=>`<th>${formatTanggalPendek(d)}</th>`).join("") + `<th>H</th><th>I</th><th>S</th><th>A</th><th>% Hadir</th>`;
       let bodyRows = "";
       if(t.rows.length===0){
-        bodyRows = `<tr><td colspan="${3+t.dates.length+4}">Tidak ada data murid / absensi pada bulan ini.</td></tr>`;
+        bodyRows = `<tr><td colspan="${3+t.dates.length+5}">Tidak ada data murid / absensi pada bulan ini.</td></tr>`;
       } else {
         t.rows.forEach(r=>{
           bodyRows += `<tr>
@@ -1707,6 +1749,7 @@ function renderRekapHTML(data, container){
             <td class="total-i">${r.counts.I}</td>
             <td class="total-s">${r.counts.S}</td>
             <td class="total-a">${r.counts.A}</td>
+            <td class="total-pct">${r.persenHadir}%</td>
           </tr>`;
         });
       }
@@ -1756,13 +1799,13 @@ function unduhExcelRekap(){
     }
     grp.tables.forEach(t=>{
       aoa.push([`Mapel: ${t.judul}`]);
-      const header = ["No","Nama Murid", ...t.dates.map(d=>formatTanggalPendek(d)), "Hadir","Izin","Sakit","Alpa"];
+      const header = ["No","Nama Murid", ...t.dates.map(d=>formatTanggalPendek(d)), "Hadir","Izin","Sakit","Alpa","% Hadir"];
       aoa.push(header);
       if(t.rows.length===0){
         aoa.push(["-", "Tidak ada data murid / absensi pada bulan ini"]);
       } else {
         t.rows.forEach(r=>{
-          aoa.push([r.no, r.nama, ...r.cells, r.counts.H, r.counts.I, r.counts.S, r.counts.A]);
+          aoa.push([r.no, r.nama, ...r.cells, r.counts.H, r.counts.I, r.counts.S, r.counts.A, r.persenHadir + "%"]);
         });
       }
       aoa.push([]);
