@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Absensi Mandiri Guru</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js" defer></script>
 <style>
   :root{
     --ink:#1E2A32;
@@ -385,6 +386,85 @@
     table.rekap-table{font-size:10px;}
     .rekap-group{page-break-inside:avoid;}
   }
+
+  /* ===== NILAI (fitur baru) ===== */
+  textarea{
+    width:100%;
+    padding:11px 12px;
+    border-radius:12px;
+    border:1.5px solid var(--line);
+    background:#fff;
+    font-size:14px;
+    color:var(--ink);
+    font-family:inherit;
+    resize:vertical;
+    min-height:90px;
+  }
+  textarea:focus{outline:none;border-color:var(--teal);}
+
+  .nilai-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:11px 0;
+    border-bottom:1px solid var(--line);
+    flex-wrap:wrap;
+  }
+  .nilai-row:last-child{border-bottom:none;}
+  .nilai-controls{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    margin-left:36px;
+    flex-wrap:wrap;
+    width:100%;
+  }
+  .quick-nilai-group{display:flex;gap:4px;}
+  .quick-nilai-btn{
+    width:30px;height:30px;
+    border-radius:8px;
+    border:1.5px solid var(--line);
+    background:#fff;
+    font-size:11px;
+    font-weight:700;
+    color:var(--ink-soft);
+    cursor:pointer;
+  }
+  .quick-nilai-btn.active{background:var(--teal);color:#fff;border-color:var(--teal);}
+  .nilai-input{
+    width:64px;
+    padding:7px 6px;
+    text-align:center;
+    border-radius:8px;
+    border:1.5px solid var(--line);
+    font-size:13.5px;
+    font-weight:700;
+    color:var(--teal-dark);
+    font-family:inherit;
+  }
+  .nilai-input:focus{outline:none;border-color:var(--teal);}
+  .nilai-badge{
+    font-size:10.5px;
+    font-weight:700;
+    padding:3px 7px;
+    border-radius:8px;
+  }
+  .nilai-badge.bagus{background:var(--hadir-bg);color:var(--hadir);}
+  .nilai-badge.cukup{background:var(--sakit-bg);color:var(--sakit);}
+  .nilai-badge.kurang{background:var(--alpa-bg);color:var(--alpa);}
+
+  /* preview import file murid */
+  .import-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:8px 0;
+    border-bottom:1px solid var(--line);
+    font-size:13.5px;
+  }
+  .import-item:last-child{border-bottom:none;}
+  .import-item input[type=checkbox]{width:17px;height:17px;accent-color:var(--teal);flex-shrink:0;}
+  .import-item .dup-tag{font-size:10px;color:var(--alpa);font-weight:700;}
 </style>
 </head>
 <body>
@@ -443,9 +523,30 @@
 
       <div class="card">
         <h2>➕ Tambah Murid Baru</h2>
-        <label for="inputNamaMurid">Nama Lengkap Murid</label>
-        <input type="text" id="inputNamaMurid" placeholder="Contoh: Ahmad Fauzi">
-        <button class="btn btn-primary" style="margin-top:12px;" onclick="tambahMurid()">Tambah ke Daftar</button>
+        <label for="inputNamaMuridBulk">Nama Murid (boleh banyak sekaligus)</label>
+        <textarea id="inputNamaMuridBulk" placeholder="Contoh:&#10;Ahmad Fauzi&#10;Budi Santoso&#10;Citra Dewi&#10;&#10;(1 nama per baris, atau pisahkan dengan koma)"></textarea>
+        <div class="hint">Tulis banyak nama sekaligus (1 baris = 1 murid), lalu cukup tekan tombol di bawah satu kali — tidak perlu Enter satu-satu.</div>
+        <button class="btn btn-primary" style="margin-top:12px;" onclick="tambahMuridBulk()">Tambah Semua ke Daftar</button>
+      </div>
+
+      <div class="card">
+        <h2>📥 Import dari File <span class="tag">Excel / Word</span></h2>
+        <label for="selectKelasImport">Kelas Tujuan</label>
+        <select id="selectKelasImport"></select>
+        <label for="inputFileImport">Pilih File (.xlsx, .xls, .csv, .docx)</label>
+        <input type="file" id="inputFileImport" accept=".xlsx,.xls,.csv,.docx">
+        <div class="hint">Untuk Excel/CSV: nama murid dibaca dari kolom pertama. Untuk Word: nama murid dibaca per baris/paragraf. Baris yang bukan nama (misal header "Nama" atau nomor urut) bisa Anda hapus centangnya sebelum ditambahkan.</div>
+        <button class="btn btn-outline btn-block" style="margin-top:12px;" onclick="prosesFileImport()">🔍 Proses File</button>
+
+        <div id="previewImportWrap" style="display:none;">
+          <div class="divider"></div>
+          <div class="flex-between">
+            <b id="previewImportCount" style="font-size:13px;"></b>
+            <button class="btn btn-ghost btn-sm" onclick="batalPreviewImport()">Batal</button>
+          </div>
+          <div id="previewImportList" style="margin-top:8px;"></div>
+          <button class="btn btn-primary btn-block" style="margin-top:12px;" onclick="konfirmasiImport()">✅ Tambahkan yang Dicentang</button>
+        </div>
       </div>
 
       <div class="card">
@@ -456,6 +557,74 @@
           Belum ada murid di kelas ini.<br>Tambahkan nama murid lewat form di atas.
         </div>
       </div>
+    </section>
+
+    <!-- ===================== VIEW: NILAI ===================== -->
+    <section class="view" id="view-nilai">
+
+      <div class="card">
+        <h2>📝 Pilih Jadwal & Pertemuan</h2>
+        <label for="selectJadwalNilai">Mata Pelajaran & Kelas</label>
+        <select id="selectJadwalNilai"></select>
+
+        <div class="jadwal-ticket" id="ticketPreviewNilai"></div>
+
+        <label for="inputPertemuan">Pertemuan ke-</label>
+        <input type="text" inputmode="numeric" id="inputPertemuan" placeholder="Contoh: 1">
+
+        <label for="inputTanggalNilai">Tanggal Penilaian (opsional)</label>
+        <input type="date" id="inputTanggalNilai">
+        <div class="hint">Nilai disimpan berdasarkan <b>pertemuan ke berapa</b>, sehingga riwayat & rekap nilai selalu rapi per pertemuan.</div>
+      </div>
+
+      <div class="card" id="cardDaftarNilai" style="display:none;">
+        <h2 id="nilaiListTitle">💯 Nilai Murid <span class="tag" id="jumlahMuridTagNilai"></span></h2>
+        <label for="inputNilaiSemua">Isi Nilai yang Sama untuk Semua Murid (opsional)</label>
+        <div class="row-btns">
+          <input type="number" id="inputNilaiSemua" placeholder="cth: 80" min="0" max="100" style="flex:1;">
+          <button class="btn btn-outline btn-sm" onclick="isiNilaiSemua()">Terapkan</button>
+        </div>
+        <div class="divider"></div>
+        <div id="listNilaiMurid"></div>
+        <button class="btn btn-primary" style="margin-top:16px;" onclick="simpanNilai()">💾 Simpan Nilai</button>
+      </div>
+
+      <div class="card empty-state" id="emptyNilai">
+        <span class="emoji">💯</span>
+        Pilih jadwal & pertemuan di atas untuk mulai menilai murid.<br>
+        Jika daftar murid masih kosong, tambahkan dulu di menu <b>Data Murid</b>.
+      </div>
+
+      <div class="card">
+        <h2>🕓 Riwayat Nilai</h2>
+        <label for="selectJadwalRiwayatNilai">Mata Pelajaran & Kelas</label>
+        <select id="selectJadwalRiwayatNilai"></select>
+        <div id="listRiwayatNilai"></div>
+        <div class="empty-state" id="emptyRiwayatNilai" style="display:none;">
+          <span class="emoji">📭</span>
+          Belum ada riwayat nilai untuk jadwal ini.
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>🗓️ Rekap Nilai</h2>
+        <label for="selectKelasRekapNilai">Kelas</label>
+        <select id="selectKelasRekapNilai">
+          <option value="ALL">Semua Kelas (dipisah per kelas)</option>
+        </select>
+        <div class="row-btns">
+          <button class="btn btn-outline" onclick="tampilkanPreviewRekapNilai()">👁️ Tampilkan</button>
+          <button class="btn btn-amber" onclick="unduhExcelRekapNilai()">📊 Unduh Excel</button>
+        </div>
+        <button class="btn btn-primary" style="margin-top:10px;" onclick="cetakRekapNilai()">🖨️ Cetak / Simpan PDF</button>
+        <div class="hint">Rekap nilai disusun per pertemuan untuk setiap mata pelajaran & kelas, lengkap dengan rata-rata nilai murid.</div>
+      </div>
+
+      <div class="card" id="cardPreviewRekapNilai" style="display:none;">
+        <h2>👁️ Pratinjau Rekap Nilai</h2>
+        <div id="previewRekapNilaiWrap"></div>
+      </div>
+
     </section>
 
     <!-- ===================== VIEW: RIWAYAT ===================== -->
@@ -514,6 +683,9 @@
     <button data-view="murid" onclick="gantiView('murid')">
       <span class="ic">👥</span> Data Murid
     </button>
+    <button data-view="nilai" onclick="gantiView('nilai')">
+      <span class="ic">💯</span> Nilai
+    </button>
     <button data-view="riwayat" onclick="gantiView('riwayat')">
       <span class="ic">🕓</span> Riwayat
     </button>
@@ -549,6 +721,20 @@
   </div>
 </div>
 
+<!-- MODAL DETAIL / EDIT RIWAYAT NILAI -->
+<div class="modal-overlay" id="modalRiwayatNilai">
+  <div class="modal-box" style="max-height:80vh;overflow-y:auto;">
+    <h3 id="riwayatNilaiDetailTitle">Detail Nilai</h3>
+    <div class="hint" style="margin:-6px 0 8px;">Ketuk kotak nilai di bawah untuk mengedit langsung, lalu tekan Simpan Perubahan.</div>
+    <div id="riwayatNilaiDetailList"></div>
+    <div class="row-btns">
+      <button class="btn btn-ghost" onclick="tutupModalRiwayatNilai()">Tutup</button>
+      <button class="btn btn-danger" onclick="hapusRiwayatNilai()">🗑️ Hapus</button>
+    </div>
+    <button class="btn btn-primary btn-block" style="margin-top:8px;" onclick="simpanEditRiwayatNilai()">💾 Simpan Perubahan</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -577,9 +763,12 @@ const STATUS_LABEL = {H:"Hadir", I:"Izin", S:"Sakit", A:"Alpa"};
    ============================================================ */
 let students = JSON.parse(localStorage.getItem("gtx_students") || "{}");
 let records  = JSON.parse(localStorage.getItem("gtx_records")  || "{}");
+// grades = { "j1_P1": { scheduleId:"j1", meeting:"1", date:"2025-01-10", data:{ studentId: 80, ... } } }
+let grades   = JSON.parse(localStorage.getItem("gtx_grades")   || "{}");
 
 function saveStudents(){ localStorage.setItem("gtx_students", JSON.stringify(students)); }
 function saveRecords(){ localStorage.setItem("gtx_records", JSON.stringify(records)); }
+function saveGrades(){ localStorage.setItem("gtx_grades", JSON.stringify(grades)); }
 
 function getStudents(kelas){
   if(!students[kelas]) students[kelas] = [];
@@ -622,6 +811,7 @@ function gantiView(name){
   document.querySelector(`.bottomnav button[data-view="${name}"]`).classList.add("active");
   if(name==="murid") renderDataMurid();
   if(name==="riwayat") renderRiwayat();
+  if(name==="nilai"){ renderNilaiList(); renderRiwayatNilai(); }
 }
 
 /* ============================================================
@@ -776,10 +966,15 @@ renderAbsenList();
    VIEW: DATA MURID
    ============================================================ */
 const selectRombel = document.getElementById("selectRombel");
+const selectKelasImport = document.getElementById("selectKelasImport");
 ROMBEL_LIST.forEach(k=>{
   const opt = document.createElement("option");
   opt.value = k; opt.textContent = k;
   selectRombel.appendChild(opt);
+
+  const opt2 = document.createElement("option");
+  opt2.value = k; opt2.textContent = k;
+  selectKelasImport.appendChild(opt2);
 });
 
 function renderDataMurid(){
@@ -809,17 +1004,38 @@ function renderDataMurid(){
   });
 }
 
-function tambahMurid(){
-  const kelas = selectRombel.value;
-  const input = document.getElementById("inputNamaMurid");
-  const nama = input.value.trim();
-  if(!nama){ showToast("⚠️ Nama murid belum diisi"); return; }
-  getStudents(kelas).push({id:uid(), name:nama});
-  saveStudents();
-  input.value = "";
-  renderDataMurid();
-  showToast("✅ " + nama + " ditambahkan ke " + kelas);
+// Pisahkan banyak nama sekaligus: per baris, atau dipisah koma dalam satu baris
+function parseNamaBanyak(teks){
+  return teks
+    .split(/\r?\n|,/)
+    .map(s=>s.trim())
+    .filter(s=>s.length>0);
 }
+
+function tambahMuridBulk(){
+  const kelas = selectRombel.value;
+  const textarea = document.getElementById("inputNamaMuridBulk");
+  const namaList = parseNamaBanyak(textarea.value);
+  if(namaList.length===0){ showToast("⚠️ Belum ada nama yang diisi"); return; }
+
+  const existingLower = getStudents(kelas).map(m=>m.name.toLowerCase());
+  let ditambah = 0, dilewati = 0;
+  namaList.forEach(nama=>{
+    if(existingLower.includes(nama.toLowerCase())){ dilewati++; return; }
+    getStudents(kelas).push({id:uid(), name:nama});
+    existingLower.push(nama.toLowerCase());
+    ditambah++;
+  });
+  saveStudents();
+  textarea.value = "";
+  renderDataMurid();
+  let pesan = `✅ ${ditambah} murid ditambahkan ke ${kelas}`;
+  if(dilewati>0) pesan += ` (${dilewati} nama duplikat dilewati)`;
+  showToast(pesan);
+}
+
+// tetap sediakan nama lama untuk kompatibilitas jika dipanggil dari tempat lain
+function tambahMurid(){ tambahMuridBulk(); }
 
 let editTarget = {kelas:null, id:null};
 function bukaModalEdit(kelas, id){
@@ -848,6 +1064,141 @@ function hapusMurid(kelas, id){
 }
 
 selectRombel.addEventListener("change", renderDataMurid);
+
+/* ============================================================
+   IMPORT DATA MURID DARI FILE (Excel / CSV / Word)
+   ============================================================ */
+let hasilImportNama = []; // array nama hasil parsing, sebelum dikonfirmasi
+
+// heuristik: buang baris yang kemungkinan besar bukan nama murid
+function kemungkinanBukanNama(teks){
+  const t = teks.trim().toLowerCase();
+  if(t.length===0) return true;
+  if(t.length>60) return true; // terlalu panjang, kemungkinan kalimat/paragraf lain
+  if(/^\d+$/.test(t)) return true; // hanya angka (no urut)
+  const headerWords = ["no","nama","nama murid","nama siswa","name","nis","nisn","kelas","jenis kelamin","l/p","jk","daftar nama","daftar hadir","absensi","no urut","keterangan"];
+  if(headerWords.includes(t)) return true;
+  return false;
+}
+
+function parseExcelCsv(arrayBuffer, callback){
+  try{
+    const wb = XLSX.read(arrayBuffer, {type:"array"});
+    let semuaNama = [];
+    wb.SheetNames.forEach(sheetName=>{
+      const ws = wb.Sheets[sheetName];
+      const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:""});
+      rows.forEach(row=>{
+        // ambil sel pertama yang berisi teks (bukan angka murni) di setiap baris
+        for(const cell of row){
+          const val = String(cell ?? "").trim();
+          if(val.length===0) continue;
+          if(!kemungkinanBukanNama(val)){ semuaNama.push(val); }
+          break; // hanya ambil kolom pertama yang tidak kosong per baris
+        }
+      });
+    });
+    callback(null, semuaNama);
+  }catch(err){
+    callback(err, []);
+  }
+}
+
+function parseDocx(arrayBuffer, callback){
+  if(typeof mammoth === "undefined"){
+    callback(new Error("Pustaka pembaca Word gagal dimuat — cek koneksi internet lalu coba lagi"), []);
+    return;
+  }
+  mammoth.extractRawText({arrayBuffer})
+    .then(result=>{
+      const lines = result.value.split(/\r?\n/).map(s=>s.trim()).filter(s=>s.length>0);
+      const nama = lines.filter(l=>!kemungkinanBukanNama(l));
+      callback(null, nama);
+    })
+    .catch(err=>callback(err, []));
+}
+
+function prosesFileImport(){
+  const fileInput = document.getElementById("inputFileImport");
+  const file = fileInput.files[0];
+  if(!file){ showToast("⚠️ Pilih file Excel/CSV/Word terlebih dahulu"); return; }
+  const ext = file.name.split(".").pop().toLowerCase();
+
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const buffer = e.target.result;
+    if(ext==="docx"){
+      parseDocx(buffer, tampilkanPreviewImport);
+    } else if(["xlsx","xls","csv"].includes(ext)){
+      if(typeof XLSX === "undefined"){
+        showToast("⚠️ Pustaka Excel gagal dimuat — cek koneksi internet lalu coba lagi");
+        return;
+      }
+      parseExcelCsv(buffer, tampilkanPreviewImport);
+    } else {
+      showToast("⚠️ Format file tidak didukung. Gunakan .xlsx, .xls, .csv, atau .docx");
+    }
+  };
+  reader.onerror = function(){ showToast("⚠️ Gagal membaca file"); };
+  reader.readAsArrayBuffer(file);
+}
+
+function tampilkanPreviewImport(err, namaList){
+  if(err){ showToast("⚠️ Gagal memproses file: " + err.message); return; }
+  // dedupe sambil menjaga urutan
+  const seen = new Set();
+  hasilImportNama = namaList.filter(n=>{
+    const k = n.toLowerCase();
+    if(seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+  if(hasilImportNama.length===0){
+    showToast("⚠️ Tidak ada nama yang terdeteksi dari file ini");
+    return;
+  }
+  const kelas = selectKelasImport.value;
+  const existingLower = getStudents(kelas).map(m=>m.name.toLowerCase());
+  const wrap = document.getElementById("previewImportList");
+  wrap.innerHTML = hasilImportNama.map((nama, idx)=>{
+    const dup = existingLower.includes(nama.toLowerCase());
+    return `<label class="import-item">
+      <input type="checkbox" data-idx="${idx}" ${dup? "" : "checked"}>
+      <span style="flex:1;">${escapeHtml(nama)}</span>
+      ${dup? '<span class="dup-tag">sudah ada</span>' : ""}
+    </label>`;
+  }).join("");
+  document.getElementById("previewImportCount").textContent = `${hasilImportNama.length} nama terdeteksi`;
+  document.getElementById("previewImportWrap").style.display = "block";
+  showToast("✅ File berhasil diproses — silakan periksa daftar sebelum menambahkan");
+}
+
+function batalPreviewImport(){
+  hasilImportNama = [];
+  document.getElementById("previewImportWrap").style.display = "none";
+  document.getElementById("inputFileImport").value = "";
+}
+
+function konfirmasiImport(){
+  const kelas = selectKelasImport.value;
+  const checks = document.querySelectorAll("#previewImportList input[type=checkbox]:checked");
+  if(checks.length===0){ showToast("⚠️ Tidak ada nama yang dicentang"); return; }
+  const existingLower = getStudents(kelas).map(m=>m.name.toLowerCase());
+  let ditambah = 0, dilewati = 0;
+  checks.forEach(chk=>{
+    const nama = hasilImportNama[Number(chk.getAttribute("data-idx"))];
+    if(existingLower.includes(nama.toLowerCase())){ dilewati++; return; }
+    getStudents(kelas).push({id:uid(), name:nama});
+    existingLower.push(nama.toLowerCase());
+    ditambah++;
+  });
+  saveStudents();
+  batalPreviewImport();
+  renderDataMurid();
+  let pesan = `✅ ${ditambah} murid dari file ditambahkan ke ${kelas}`;
+  if(dilewati>0) pesan += ` (${dilewati} duplikat dilewati)`;
+  showToast(pesan);
+}
 
 /* ============================================================
    VIEW: RIWAYAT
@@ -916,6 +1267,366 @@ function hapusRiwayat(){
   renderRiwayat();
   renderAbsenList();
   showToast("🗑️ Riwayat dihapus");
+}
+
+/* ============================================================
+   VIEW: NILAI
+   ============================================================ */
+const selectJadwalNilai = document.getElementById("selectJadwalNilai");
+const inputPertemuan = document.getElementById("inputPertemuan");
+const inputTanggalNilai = document.getElementById("inputTanggalNilai");
+buildJadwalOptions(selectJadwalNilai);
+inputPertemuan.value = "1";
+inputTanggalNilai.value = todayISO();
+
+function renderTicketPreviewNilai(){
+  const s = scheduleById(selectJadwalNilai.value);
+  const el = document.getElementById("ticketPreviewNilai");
+  if(!s){ el.innerHTML = ""; return; }
+  el.innerHTML = `
+    <div class="day-strip">${s.day.toUpperCase()}</div>
+    <div class="info">
+      <div class="subj">${s.subject}</div>
+      <div class="meta">
+        <span>🏷️ ${s.class}</span>
+        <span>⏰ ${s.start} - ${s.end}</span>
+        <span>🚪 ${s.room}</span>
+      </div>
+    </div>`;
+}
+
+function labelNilai(v){
+  if(v==="" || v===null || v===undefined) return "";
+  const n = Number(v);
+  if(isNaN(n)) return "";
+  if(n>=75) return "bagus";
+  if(n>=60) return "cukup";
+  return "kurang";
+}
+
+let currentNilai = {}; // {studentId: nilai (number/"")}
+
+function renderNilaiList(){
+  const s = scheduleById(selectJadwalNilai.value);
+  renderTicketPreviewNilai();
+  const cardList = document.getElementById("cardDaftarNilai");
+  const empty = document.getElementById("emptyNilai");
+  if(!s){ cardList.style.display="none"; empty.style.display="block"; return; }
+
+  const list = getStudents(s.class);
+  if(list.length===0){
+    cardList.style.display="none";
+    empty.style.display="block";
+    empty.innerHTML = `<span class="emoji">💯</span>Belum ada data murid untuk kelas <b>${s.class}</b>.<br>Tambahkan dulu lewat menu <b>Data Murid</b>.`;
+    return;
+  }
+  empty.style.display="none";
+  cardList.style.display="block";
+  document.getElementById("jumlahMuridTagNilai").textContent = list.length + " murid";
+  document.getElementById("nilaiListTitle").innerHTML = `💯 Nilai Murid <span class="tag" id="jumlahMuridTagNilai">${list.length} murid</span>`;
+
+  const meeting = (inputPertemuan.value || "").trim() || "1";
+  const key = s.id + "_P" + meeting;
+  const existing = grades[key];
+  currentNilai = {};
+  list.forEach(m=>{
+    currentNilai[m.id] = existing && existing.data[m.id]!==undefined ? existing.data[m.id] : "";
+  });
+
+  const wrap = document.getElementById("listNilaiMurid");
+  wrap.innerHTML = "";
+  list.forEach((m, idx)=>{
+    const row = document.createElement("div");
+    row.className = "nilai-row";
+    const nilaiSekarang = currentNilai[m.id];
+    row.innerHTML = `
+      <div class="student-num">${idx+1}</div>
+      <div class="student-name">${escapeHtml(m.name)}</div>
+      <div class="nilai-controls" data-mid="${m.id}">
+        <div class="quick-nilai-group">
+          ${[60,70,80,90].map(v=>`<button type="button" class="quick-nilai-btn ${String(nilaiSekarang)===String(v)?'active':''}" data-v="${v}">${v}</button>`).join("")}
+        </div>
+        <input type="number" class="nilai-input" min="0" max="100" placeholder="-" value="${nilaiSekarang}">
+      </div>`;
+    wrap.appendChild(row);
+  });
+
+  wrap.querySelectorAll(".nilai-controls").forEach(ctrl=>{
+    const mid = ctrl.getAttribute("data-mid");
+    const numInput = ctrl.querySelector(".nilai-input");
+    ctrl.querySelectorAll(".quick-nilai-btn").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        const v = btn.getAttribute("data-v");
+        currentNilai[mid] = v;
+        numInput.value = v;
+        ctrl.querySelectorAll(".quick-nilai-btn").forEach(b=>b.classList.remove("active"));
+        btn.classList.add("active");
+      });
+    });
+    numInput.addEventListener("input", ()=>{
+      let v = numInput.value;
+      if(v!=="" ){
+        let n = Math.max(0, Math.min(100, Number(v)));
+        v = String(n);
+      }
+      currentNilai[mid] = v;
+      ctrl.querySelectorAll(".quick-nilai-btn").forEach(b=>{
+        b.classList.toggle("active", b.getAttribute("data-v")===String(v));
+      });
+    });
+  });
+}
+
+function isiNilaiSemua(){
+  const v = document.getElementById("inputNilaiSemua").value;
+  if(v===""){ showToast("⚠️ Isi angka nilai terlebih dahulu"); return; }
+  const n = Math.max(0, Math.min(100, Number(v)));
+  Object.keys(currentNilai).forEach(mid=>currentNilai[mid]=String(n));
+  document.querySelectorAll("#listNilaiMurid .nilai-controls").forEach(ctrl=>{
+    ctrl.querySelector(".nilai-input").value = n;
+    ctrl.querySelectorAll(".quick-nilai-btn").forEach(b=>{
+      b.classList.toggle("active", b.getAttribute("data-v")===String(n));
+    });
+  });
+  showToast(`✅ Semua murid diisi nilai ${n}`);
+}
+
+function simpanNilai(){
+  const s = scheduleById(selectJadwalNilai.value);
+  if(!s) return;
+  const meeting = (inputPertemuan.value || "").trim();
+  if(!meeting){ showToast("⚠️ Isi pertemuan ke berapa terlebih dahulu"); return; }
+  const key = s.id + "_P" + meeting;
+  const dataBersih = {};
+  Object.entries(currentNilai).forEach(([mid,v])=>{
+    if(v!=="" && v!==null && v!==undefined) dataBersih[mid] = Number(v);
+  });
+  grades[key] = {
+    scheduleId: s.id,
+    meeting: meeting,
+    date: inputTanggalNilai.value || "",
+    data: dataBersih
+  };
+  saveGrades();
+  showToast(`✅ Nilai pertemuan ke-${meeting} tersimpan`);
+  renderRiwayatNilai();
+}
+
+selectJadwalNilai.addEventListener("change", renderNilaiList);
+inputPertemuan.addEventListener("change", renderNilaiList);
+inputTanggalNilai.addEventListener("change", renderNilaiList);
+renderNilaiList();
+
+/* ---- RIWAYAT NILAI ---- */
+const selectJadwalRiwayatNilai = document.getElementById("selectJadwalRiwayatNilai");
+buildJadwalOptions(selectJadwalRiwayatNilai);
+
+function renderRiwayatNilai(){
+  const sid = selectJadwalRiwayatNilai.value;
+  const wrap = document.getElementById("listRiwayatNilai");
+  const empty = document.getElementById("emptyRiwayatNilai");
+  const list = Object.entries(grades)
+    .filter(([k,v])=>v.scheduleId===sid)
+    .sort((a,b)=> Number(a[1].meeting)-Number(b[1].meeting));
+
+  if(list.length===0){
+    wrap.innerHTML = "";
+    empty.style.display = "block";
+    return;
+  }
+  empty.style.display = "none";
+  wrap.innerHTML = "";
+  list.forEach(([key, rec])=>{
+    const nilaiArr = Object.values(rec.data).map(Number).filter(n=>!isNaN(n));
+    const rata = nilaiArr.length ? (nilaiArr.reduce((a,b)=>a+b,0)/nilaiArr.length).toFixed(1) : "-";
+    const el = document.createElement("div");
+    el.className = "history-item";
+    el.onclick = ()=>bukaModalRiwayatNilai(key);
+    el.innerHTML = `
+      <div>
+        <div class="hdate">Pertemuan ke-${rec.meeting}${rec.date? " · " + formatTanggalIndo(rec.date) : ""}</div>
+        <div class="hcount">${nilaiArr.length} murid dinilai · Rata-rata ${rata}</div>
+      </div>
+      <div class="chev">›</div>`;
+    wrap.appendChild(el);
+  });
+}
+selectJadwalRiwayatNilai.addEventListener("change", renderRiwayatNilai);
+
+let riwayatNilaiTargetKey = null;
+function bukaModalRiwayatNilai(key){
+  riwayatNilaiTargetKey = key;
+  const rec = grades[key];
+  const s = scheduleById(rec.scheduleId);
+  const list = getStudents(s.class);
+  document.getElementById("riwayatNilaiDetailTitle").textContent = `Pertemuan ke-${rec.meeting} — ${s.class}`;
+  const wrap = document.getElementById("riwayatNilaiDetailList");
+  wrap.innerHTML = list.map((m,idx)=>{
+    const v = rec.data[m.id] !== undefined ? rec.data[m.id] : "";
+    return `<div class="nilai-row">
+      <div class="student-num">${idx+1}</div>
+      <div class="student-name">${escapeHtml(m.name)}</div>
+      <input type="number" class="nilai-input" min="0" max="100" data-mid="${m.id}" value="${v}" placeholder="-">
+    </div>`;
+  }).join("");
+  document.getElementById("modalRiwayatNilai").classList.add("active");
+}
+function tutupModalRiwayatNilai(){ document.getElementById("modalRiwayatNilai").classList.remove("active"); riwayatNilaiTargetKey=null; }
+function simpanEditRiwayatNilai(){
+  if(!riwayatNilaiTargetKey) return;
+  const rec = grades[riwayatNilaiTargetKey];
+  const inputs = document.querySelectorAll("#riwayatNilaiDetailList .nilai-input");
+  const dataBaru = {};
+  inputs.forEach(inp=>{
+    const v = inp.value;
+    if(v!=="") dataBaru[inp.getAttribute("data-mid")] = Math.max(0, Math.min(100, Number(v)));
+  });
+  rec.data = dataBaru;
+  saveGrades();
+  tutupModalRiwayatNilai();
+  renderRiwayatNilai();
+  renderNilaiList();
+  showToast("✅ Perubahan nilai disimpan");
+}
+function hapusRiwayatNilai(){
+  if(!riwayatNilaiTargetKey) return;
+  if(!confirm("Hapus riwayat nilai pertemuan ini?")) return;
+  delete grades[riwayatNilaiTargetKey];
+  saveGrades();
+  tutupModalRiwayatNilai();
+  renderRiwayatNilai();
+  renderNilaiList();
+  showToast("🗑️ Riwayat nilai dihapus");
+}
+
+/* ---- REKAP NILAI ---- */
+const selectKelasRekapNilai = document.getElementById("selectKelasRekapNilai");
+ROMBEL_LIST.forEach(k=>{
+  const opt = document.createElement("option");
+  opt.value = k; opt.textContent = k;
+  selectKelasRekapNilai.appendChild(opt);
+});
+
+// hasil: array of { kelas, tables:[{judul, meetings:[{meeting,date}], rows:[{no,nama,cells,rata}]}] }
+function buildRekapNilaiData(kelasFilter){
+  const kelasTarget = kelasFilter==="ALL" ? ROMBEL_LIST : [kelasFilter];
+  const hasil = [];
+  kelasTarget.forEach(kelas=>{
+    const jadwalKelas = SCHEDULE.filter(s=>s.class===kelas);
+    const tables = [];
+    jadwalKelas.forEach(s=>{
+      const recs = Object.values(grades)
+        .filter(r=>r.scheduleId===s.id)
+        .sort((a,b)=>Number(a.meeting)-Number(b.meeting));
+      const meetings = recs.map(r=>({meeting:r.meeting, date:r.date}));
+      const list = getStudents(kelas);
+      const rows = list.map((m, idx)=>{
+        const cells = recs.map(r=> r.data[m.id]!==undefined ? r.data[m.id] : "-");
+        const nilaiValid = cells.filter(c=>c!=="-").map(Number);
+        const rata = nilaiValid.length ? (nilaiValid.reduce((a,b)=>a+b,0)/nilaiValid.length).toFixed(1) : "-";
+        return {no:idx+1, nama:m.name, cells, rata};
+      });
+      tables.push({
+        judul: `${s.subject} — ${s.day}, ${s.start}-${s.end}, ${s.room}`,
+        meetings, rows
+      });
+    });
+    hasil.push({kelas, tables});
+  });
+  return hasil;
+}
+
+function renderRekapNilaiHTML(data, container){
+  container.innerHTML = "";
+  data.forEach(grp=>{
+    const kelasBlock = document.createElement("div");
+    kelasBlock.innerHTML = `<h3 style="font-size:14.5px;color:var(--teal-dark);margin:18px 0 10px;">🏷️ Kelas ${grp.kelas}</h3>`;
+    if(grp.tables.length===0 || grp.tables.every(t=>t.rows.length===0)){
+      kelasBlock.innerHTML += `<div class="hint">Belum ada data murid/nilai untuk kelas ini.</div>`;
+    }
+    grp.tables.forEach(t=>{
+      const wrap = document.createElement("div");
+      wrap.className = "rekap-group";
+      let theadCols = `<th>No</th><th style="text-align:left;">Nama Murid</th>` + t.meetings.map(mt=>`<th>P${mt.meeting}</th>`).join("") + `<th>Rata²</th>`;
+      let bodyRows = "";
+      if(t.rows.length===0){
+        bodyRows = `<tr><td colspan="${3+t.meetings.length}">Tidak ada data murid / nilai.</td></tr>`;
+      } else {
+        t.rows.forEach(r=>{
+          bodyRows += `<tr>
+            <td>${r.no}</td>
+            <td class="nama-cell">${escapeHtml(r.nama)}</td>
+            ${r.cells.map(c=>`<td>${c}</td>`).join("")}
+            <td class="total-h">${r.rata}</td>
+          </tr>`;
+        });
+      }
+      wrap.innerHTML = `
+        <h4>📘 ${t.judul}</h4>
+        <div class="rekap-table-wrap">
+          <table class="rekap-table">
+            <thead><tr>${theadCols}</tr></thead>
+            <tbody>${bodyRows}</tbody>
+          </table>
+        </div>`;
+      kelasBlock.appendChild(wrap);
+    });
+    container.appendChild(kelasBlock);
+  });
+}
+
+function tampilkanPreviewRekapNilai(){
+  const data = buildRekapNilaiData(selectKelasRekapNilai.value);
+  document.getElementById("cardPreviewRekapNilai").style.display = "block";
+  renderRekapNilaiHTML(data, document.getElementById("previewRekapNilaiWrap"));
+  showToast("✅ Pratinjau rekap nilai dibuat");
+}
+
+function unduhExcelRekapNilai(){
+  if(typeof XLSX === "undefined"){
+    showToast("⚠️ Gagal memuat pustaka Excel — cek koneksi internet lalu coba lagi");
+    return;
+  }
+  const data = buildRekapNilaiData(selectKelasRekapNilai.value);
+  const wb = XLSX.utils.book_new();
+  data.forEach(grp=>{
+    let aoa = [[`REKAP NILAI — KELAS ${grp.kelas}`]];
+    aoa.push([]);
+    if(grp.tables.length===0){
+      aoa.push(["Tidak ada jadwal untuk kelas ini"]);
+    }
+    grp.tables.forEach(t=>{
+      aoa.push([`Mapel: ${t.judul}`]);
+      const header = ["No","Nama Murid", ...t.meetings.map(mt=>"P"+mt.meeting), "Rata-rata"];
+      aoa.push(header);
+      if(t.rows.length===0){
+        aoa.push(["-", "Tidak ada data murid / nilai"]);
+      } else {
+        t.rows.forEach(r=>{
+          aoa.push([r.no, r.nama, ...r.cells, r.rata]);
+        });
+      }
+      aoa.push([]);
+    });
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws["!cols"] = [{wch:4},{wch:24}];
+    const sheetName = grp.kelas.replace(/[\\/?*[\]:]/g,"").substring(0,31);
+    XLSX.utils.book_append_sheet(wb, ws, sheetName || "Kelas");
+  });
+  XLSX.writeFile(wb, `Rekap_Nilai_${todayISO()}.xlsx`);
+  showToast("✅ File Excel diunduh");
+}
+
+function cetakRekapNilai(){
+  const data = buildRekapNilaiData(selectKelasRekapNilai.value);
+  const printArea = document.getElementById("printArea");
+  const judulKelas = selectKelasRekapNilai.value==="ALL" ? "Semua Kelas" : selectKelasRekapNilai.value;
+  printArea.innerHTML = `<h2 style="font-size:16px;margin-bottom:2px;">Rekap Nilai Murid</h2>
+    <div style="font-size:12px;color:#5B6B74;margin-bottom:14px;">Kelas: ${judulKelas} · Dicetak: ${formatTanggalIndo(todayISO())}</div>`;
+  const contentDiv = document.createElement("div");
+  renderRekapNilaiHTML(data, contentDiv);
+  printArea.appendChild(contentDiv);
+  setTimeout(()=>window.print(), 150);
 }
 
 /* ============================================================
