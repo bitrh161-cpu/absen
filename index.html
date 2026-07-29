@@ -454,6 +454,24 @@
   .nilai-badge.cukup{background:var(--sakit-bg);color:var(--sakit);}
   .nilai-badge.kurang{background:var(--alpa-bg);color:var(--alpa);}
 
+  /* Badge status kehadiran (fitur baru: tampil di tab Nilai) */
+  .absen-status-badge{
+    display:inline-block;
+    font-size:10px;
+    font-weight:700;
+    padding:2px 7px;
+    border-radius:8px;
+    margin-left:7px;
+    white-space:nowrap;
+    vertical-align:middle;
+  }
+  .absen-status-badge.st-H{background:var(--hadir-bg);color:var(--hadir);}
+  .absen-status-badge.st-I{background:var(--izin-bg);color:var(--izin);}
+  .absen-status-badge.st-S{background:var(--sakit-bg);color:var(--sakit);}
+  .absen-status-badge.st-A{background:var(--alpa-bg);color:var(--alpa);}
+  .absen-status-badge.st-none{background:var(--paper);color:var(--ink-soft);border:1px solid var(--line);}
+  .nilai-row.is-tidak-hadir{opacity:.6;}
+
   /* preview import file murid */
   .import-item{
     display:flex;
@@ -501,7 +519,13 @@
           <button class="btn btn-ghost btn-sm" style="flex:1" onclick="resetTanda()">↺ Reset Tanda</button>
         </div>
         <div class="divider"></div>
+        <label for="inputCariMuridAbsen">🔎 Cari Nama Murid</label>
+        <input type="text" id="inputCariMuridAbsen" placeholder="Ketik nama murid, contoh: anwar" autocomplete="off">
         <div id="listAbsenMurid"></div>
+        <div class="empty-state" id="emptyCariAbsen" style="display:none;">
+          <span class="emoji">🔎</span>
+          Nama murid tidak ditemukan. Coba kata kunci lain.
+        </div>
         <div class="summary-strip" id="summaryStrip"></div>
         <button class="btn btn-primary" style="margin-top:16px;" id="btnSimpanAbsen" onclick="simpanAbsensi()">💾 Simpan Absensi</button>
       </div>
@@ -552,10 +576,16 @@
 
       <div class="card">
         <h2>📖 Daftar Murid <span class="tag" id="jumlahMuridTag2"></span></h2>
+        <label for="inputCariMurid">🔎 Cari Nama Murid</label>
+        <input type="text" id="inputCariMurid" placeholder="Ketik nama murid, contoh: anwar" autocomplete="off">
         <div id="listDataMurid"></div>
         <div class="empty-state" id="emptyMurid" style="display:none;">
           <span class="emoji">📝</span>
           Belum ada murid di kelas ini.<br>Tambahkan nama murid lewat form di atas.
+        </div>
+        <div class="empty-state" id="emptyCariMurid" style="display:none;">
+          <span class="emoji">🔎</span>
+          Nama murid tidak ditemukan. Coba kata kunci lain.
         </div>
       </div>
     </section>
@@ -575,7 +605,7 @@
 
         <label for="inputTanggalNilai">Tanggal Penilaian (opsional)</label>
         <input type="date" id="inputTanggalNilai">
-        <div class="hint">Nilai disimpan berdasarkan <b>pertemuan ke berapa</b>, sehingga riwayat & rekap nilai selalu rapi per pertemuan.</div>
+        <div class="hint">Nilai disimpan berdasarkan <b>pertemuan ke berapa</b>, sehingga riwayat & rekap nilai selalu rapi per pertemuan. Jika tanggal ini sudah pernah diabsen, status <b>Hadir/Izin/Sakit/Alpa</b> murid akan otomatis tampil di samping nama pada daftar nilai di bawah.</div>
       </div>
 
       <div class="card" id="cardDaftarNilai" style="display:none;">
@@ -629,6 +659,8 @@
 
       <div class="card" id="cardPreviewRekapNilai" style="display:none;">
         <h2>👁️ Pratinjau Rekap Nilai</h2>
+        <label for="inputCariMuridRekapNilai">🔎 Cari Nama Murid</label>
+        <input type="text" id="inputCariMuridRekapNilai" placeholder="Ketik nama murid, contoh: anwar" autocomplete="off">
         <div id="previewRekapNilaiWrap"></div>
       </div>
 
@@ -674,6 +706,8 @@
 
       <div class="card" id="cardPreviewRekap" style="display:none;">
         <h2>👁️ Pratinjau Rekap</h2>
+        <label for="inputCariMuridRekap">🔎 Cari Nama Murid</label>
+        <input type="text" id="inputCariMuridRekap" placeholder="Ketik nama murid, contoh: anwar" autocomplete="off">
         <div id="previewRekapWrap"></div>
       </div>
     </section>
@@ -907,6 +941,7 @@ function renderAbsenList(){
   list.forEach((m, idx)=>{
     const row = document.createElement("div");
     row.className = "student-row";
+    row.setAttribute("data-nama", normalisasiTeks(m.name));
     row.innerHTML = `
       <div class="student-num">${idx+1}</div>
       <div class="student-name">${escapeHtml(m.name)}</div>
@@ -929,6 +964,24 @@ function renderAbsenList(){
   });
 
   renderSummary();
+  filterAbsenMuridList();
+}
+
+/* ---- FITUR CARI MURID (view Absen) ---- */
+function filterAbsenMuridList(){
+  const inputCari = document.getElementById("inputCariMuridAbsen");
+  const q = normalisasiTeks(inputCari ? inputCari.value : "");
+  const wrap = document.getElementById("listAbsenMurid");
+  const rows = wrap.querySelectorAll(".student-row");
+  let jumlahTampil = 0;
+  rows.forEach(row=>{
+    const nama = row.getAttribute("data-nama") || "";
+    const cocok = q === "" || nama.includes(q);
+    row.style.display = cocok ? "" : "none";
+    if(cocok) jumlahTampil++;
+  });
+  const emptyCari = document.getElementById("emptyCariAbsen");
+  if(emptyCari) emptyCari.style.display = (q !== "" && jumlahTampil === 0) ? "block" : "none";
 }
 
 function renderSummary(){
@@ -965,8 +1018,17 @@ function simpanAbsensi(){
   showToast("✅ Absensi tersimpan — " + formatTanggalIndo(inputTanggal.value));
 }
 
-selectJadwal.addEventListener("change", renderAbsenList);
-inputTanggal.addEventListener("change", renderAbsenList);
+selectJadwal.addEventListener("change", function(){
+  const inputCari = document.getElementById("inputCariMuridAbsen");
+  if(inputCari) inputCari.value = "";
+  renderAbsenList();
+});
+inputTanggal.addEventListener("change", function(){
+  const inputCari = document.getElementById("inputCariMuridAbsen");
+  if(inputCari) inputCari.value = "";
+  renderAbsenList();
+});
+document.getElementById("inputCariMuridAbsen").addEventListener("input", filterAbsenMuridList);
 renderAbsenList();
 
 /* ============================================================
@@ -1001,6 +1063,7 @@ function renderDataMurid(){
   list.forEach((m, idx)=>{
     const row = document.createElement("div");
     row.className = "student-row";
+    row.setAttribute("data-nama", normalisasiTeks(m.name));
     row.innerHTML = `
       <div class="student-num">${idx+1}</div>
       <div class="student-name">${escapeHtml(m.name)}<span class="kls-sub">${kelas}</span></div>
@@ -1009,6 +1072,24 @@ function renderDataMurid(){
     `;
     wrap.appendChild(row);
   });
+  filterDataMuridList();
+}
+
+/* ---- FITUR CARI MURID (view Data Murid) ---- */
+function filterDataMuridList(){
+  const inputCari = document.getElementById("inputCariMurid");
+  const q = normalisasiTeks(inputCari ? inputCari.value : "");
+  const wrap = document.getElementById("listDataMurid");
+  const rows = wrap.querySelectorAll(".student-row");
+  let jumlahTampil = 0;
+  rows.forEach(row=>{
+    const nama = row.getAttribute("data-nama") || "";
+    const cocok = q === "" || nama.includes(q);
+    row.style.display = cocok ? "" : "none";
+    if(cocok) jumlahTampil++;
+  });
+  const emptyCari = document.getElementById("emptyCariMurid");
+  if(emptyCari) emptyCari.style.display = (q !== "" && jumlahTampil === 0 && rows.length>0) ? "block" : "none";
 }
 
 // Pisahkan banyak nama sekaligus: per baris, atau dipisah koma dalam satu baris
@@ -1070,7 +1151,12 @@ function hapusMurid(kelas, id){
   showToast("🗑️ Murid dihapus dari daftar");
 }
 
-selectRombel.addEventListener("change", renderDataMurid);
+selectRombel.addEventListener("change", function(){
+  const inputCari = document.getElementById("inputCariMurid");
+  if(inputCari) inputCari.value = "";
+  renderDataMurid();
+});
+document.getElementById("inputCariMurid").addEventListener("input", filterDataMuridList);
 
 /* ============================================================
    IMPORT DATA MURID DARI FILE (Excel / CSV / Word)
@@ -1340,16 +1426,30 @@ function renderNilaiList(){
     currentNilai[m.id] = existing && existing.data[m.id]!==undefined ? existing.data[m.id] : "";
   });
 
+  // ambil data absen pada tanggal yang diisi (jika ada), untuk ditampilkan di samping nama
+  const tglNilai = inputTanggalNilai.value;
+  const absenKey = tglNilai ? (s.id + "_" + tglNilai) : null;
+  const absenRec = absenKey ? records[absenKey] : null;
+
   const wrap = document.getElementById("listNilaiMurid");
   wrap.innerHTML = "";
   list.forEach((m, idx)=>{
     const row = document.createElement("div");
-    row.className = "nilai-row";
+    const statusAbsen = absenRec ? (absenRec.data[m.id] || null) : null;
+    row.className = "nilai-row" + (statusAbsen && statusAbsen!=="H" ? " is-tidak-hadir" : "");
     row.setAttribute("data-nama", normalisasiTeks(m.name));
     const nilaiSekarang = currentNilai[m.id];
+    let badgeHtml = "";
+    if(absenRec){
+      if(statusAbsen){
+        badgeHtml = `<span class="absen-status-badge st-${statusAbsen}">${STATUS_LABEL[statusAbsen]}</span>`;
+      } else {
+        badgeHtml = `<span class="absen-status-badge st-none">Belum diabsen</span>`;
+      }
+    }
     row.innerHTML = `
       <div class="student-num">${idx+1}</div>
-      <div class="student-name">${escapeHtml(m.name)}</div>
+      <div class="student-name">${escapeHtml(m.name)}${badgeHtml}</div>
       <div class="nilai-controls" data-mid="${m.id}">
         <div class="quick-nilai-group">
           ${[60,70,80,90].map(v=>`<button type="button" class="quick-nilai-btn ${String(nilaiSekarang)===String(v)?'active':''}" data-v="${v}">${v}</button>`).join("")}
@@ -1593,7 +1693,7 @@ function renderRekapNilaiHTML(data, container){
         bodyRows = `<tr><td colspan="${3+t.meetings.length}">Tidak ada data murid / nilai.</td></tr>`;
       } else {
         t.rows.forEach(r=>{
-          bodyRows += `<tr>
+          bodyRows += `<tr data-nama="${normalisasiTeks(r.nama)}">
             <td>${r.no}</td>
             <td class="nama-cell">${escapeHtml(r.nama)}</td>
             ${r.cells.map(c=>`<td>${c}</td>`).join("")}
@@ -1619,8 +1719,25 @@ function tampilkanPreviewRekapNilai(){
   const data = buildRekapNilaiData(selectKelasRekapNilai.value);
   document.getElementById("cardPreviewRekapNilai").style.display = "block";
   renderRekapNilaiHTML(data, document.getElementById("previewRekapNilaiWrap"));
+  const inputCariRekapNilai = document.getElementById("inputCariMuridRekapNilai");
+  if(inputCariRekapNilai) inputCariRekapNilai.value = "";
+  filterRekapNilaiMuridList();
   showToast("✅ Pratinjau rekap nilai dibuat");
 }
+
+/* ---- FITUR CARI MURID (preview Rekap Nilai) ---- */
+function filterRekapNilaiMuridList(){
+  const inputCari = document.getElementById("inputCariMuridRekapNilai");
+  const q = normalisasiTeks(inputCari ? inputCari.value : "");
+  const wrap = document.getElementById("previewRekapNilaiWrap");
+  if(!wrap) return;
+  wrap.querySelectorAll("tr[data-nama]").forEach(tr=>{
+    const nama = tr.getAttribute("data-nama") || "";
+    const cocok = q === "" || nama.includes(q);
+    tr.style.display = cocok ? "" : "none";
+  });
+}
+document.getElementById("inputCariMuridRekapNilai").addEventListener("input", filterRekapNilaiMuridList);
 
 function unduhExcelRekapNilai(){
   if(typeof XLSX === "undefined"){
@@ -1741,7 +1858,7 @@ function renderRekapHTML(data, container){
         bodyRows = `<tr><td colspan="${3+t.dates.length+5}">Tidak ada data murid / absensi pada bulan ini.</td></tr>`;
       } else {
         t.rows.forEach(r=>{
-          bodyRows += `<tr>
+          bodyRows += `<tr data-nama="${normalisasiTeks(r.nama)}">
             <td>${r.no}</td>
             <td class="nama-cell">${escapeHtml(r.nama)}</td>
             ${r.cells.map(c=>`<td>${c}</td>`).join("")}
@@ -1773,8 +1890,25 @@ function tampilkanPreviewRekap(){
   const data = buildRekapData(bulan, selectKelasRekap.value);
   document.getElementById("cardPreviewRekap").style.display = "block";
   renderRekapHTML(data, document.getElementById("previewRekapWrap"));
+  const inputCariRekap = document.getElementById("inputCariMuridRekap");
+  if(inputCariRekap) inputCariRekap.value = "";
+  filterRekapMuridList();
   showToast("✅ Pratinjau rekap dibuat");
 }
+
+/* ---- FITUR CARI MURID (preview Rekap Bulanan) ---- */
+function filterRekapMuridList(){
+  const inputCari = document.getElementById("inputCariMuridRekap");
+  const q = normalisasiTeks(inputCari ? inputCari.value : "");
+  const wrap = document.getElementById("previewRekapWrap");
+  if(!wrap) return;
+  wrap.querySelectorAll("tr[data-nama]").forEach(tr=>{
+    const nama = tr.getAttribute("data-nama") || "";
+    const cocok = q === "" || nama.includes(q);
+    tr.style.display = cocok ? "" : "none";
+  });
+}
+document.getElementById("inputCariMuridRekap").addEventListener("input", filterRekapMuridList);
 
 function namaBulanIndo(bulan){
   const bln = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
