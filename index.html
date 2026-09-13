@@ -3779,26 +3779,36 @@ function buildBackfillStudentOptions(){
 }
 
 function renderBackfillNilai(){
-  buildBackfillStudentOptions();
   const sid = selectJadwalBackfillNilai.value;
+  const s = scheduleById(sid);
   const mid = selectMuridBackfillNilai.value;
+
+  /* Jangan rebuild dropdown siswa saat nama dipilih.
+     Dropdown hanya dibangun ketika jadwal berubah melalui buildBackfillStudentOptions(). */
+  const backfillMeetingList = document.getElementById("backfillMeetingList");
+  const emptyBackfillNilai = document.getElementById("emptyBackfillNilai");
+  const countEl = document.getElementById("backfillMeetingCount");
+  const filledEl = document.getElementById("backfillFilledCount");
+  const emptyEl = document.getElementById("backfillEmptyCount");
+
+  if(!backfillMeetingList || !emptyBackfillNilai) return;
   const recs = Object.entries(grades)
-    .filter(([k,r])=>r.scheduleId===sid)
+    .filter(([k,r])=>r && r.scheduleId===sid)
     .sort((a,b)=>Number(a[1].meeting)-Number(b[1].meeting));
 
   backfillMeetingList.innerHTML = "";
-  if(recs.length===0){
+  if(!s || !mid || recs.length===0){
     emptyBackfillNilai.style.display = "block";
-    document.getElementById("backfillMeetingCount").textContent = "0";
-    document.getElementById("backfillFilledCount").textContent = "0";
-    document.getElementById("backfillEmptyCount").textContent = "0";
+    if(countEl) countEl.textContent = String(recs.length);
+    if(filledEl) filledEl.textContent = "0";
+    if(emptyEl) emptyEl.textContent = String(recs.length);
     return;
   }
   emptyBackfillNilai.style.display = "none";
 
   let filled=0;
   recs.forEach(([key,rec])=>{
-    const existing = mid && rec.data && rec.data[mid]!==undefined ? rec.data[mid] : "";
+    const existing = rec.data && rec.data[mid]!==undefined ? rec.data[mid] : "";
     if(existing!=="") filled++;
     const row = document.createElement("div");
     row.className = "backfill-meeting-row";
@@ -3815,9 +3825,9 @@ function renderBackfillNilai(){
     backfillMeetingList.appendChild(row);
   });
 
-  document.getElementById("backfillMeetingCount").textContent = String(recs.length);
-  document.getElementById("backfillFilledCount").textContent = String(filled);
-  document.getElementById("backfillEmptyCount").textContent = String(recs.length-filled);
+  if(countEl) countEl.textContent = String(recs.length);
+  if(filledEl) filledEl.textContent = String(filled);
+  if(emptyEl) emptyEl.textContent = String(recs.length-filled);
 
   backfillMeetingList.querySelectorAll(".backfill-meeting-input").forEach(inp=>{
     inp.addEventListener("input",()=>{
@@ -4010,115 +4020,7 @@ select,
 }
 </style>
 <script id="final-interaction-patch-js">
-/* Keep the selected student stable while switching names. */
-(function(){
-  if(typeof selectMuridBackfillAbsen === 'undefined' || typeof selectJadwalBackfillAbsen === 'undefined') return;
-
-  const originalBuildAbsen = window.buildMuridBackfillAbsen;
-  window.buildMuridBackfillAbsen = function(){
-    const previousStudent = selectMuridBackfillAbsen.value;
-    if(typeof originalBuildAbsen === 'function') originalBuildAbsen();
-    if(previousStudent && [...selectMuridBackfillAbsen.options].some(o=>o.value===previousStudent)){
-      selectMuridBackfillAbsen.value = previousStudent;
-    }
-    if(typeof window.renderBackfillAbsen === 'function') window.renderBackfillAbsen();
-  };
-
-  /* The original Nilai renderer rebuilt the student dropdown on every change,
-     which forced the selection back to student #1. Replace it with a state-aware renderer. */
-  if(typeof selectMuridBackfillNilai !== 'undefined' && typeof selectJadwalBackfillNilai !== 'undefined'){
-    let lastNilaiScheduleId = null;
-
-    window.renderBackfillNilai = function(){
-      const sid = selectJadwalBackfillNilai.value;
-      const s = typeof scheduleById === 'function' ? scheduleById(sid) : null;
-      const oldStudent = selectMuridBackfillNilai.value;
-      const scheduleChanged = sid !== lastNilaiScheduleId;
-
-      if(scheduleChanged){
-        selectMuridBackfillNilai.innerHTML = '';
-        const list = s ? getStudents(s.class) : [];
-        if(!s){
-          selectMuridBackfillNilai.innerHTML = '<option value="">Pilih jadwal terlebih dahulu</option>';
-        }else if(list.length===0){
-          selectMuridBackfillNilai.innerHTML = '<option value="">Belum ada siswa di kelas ini</option>';
-        }else{
-          list.forEach((m,idx)=>{
-            const opt=document.createElement('option');
-            opt.value=m.id;
-            opt.textContent=`${idx+1}. ${m.name}`;
-            selectMuridBackfillNilai.appendChild(opt);
-          });
-          selectMuridBackfillNilai.value = list.some(m=>m.id===oldStudent) ? oldStudent : list[0].id;
-        }
-        lastNilaiScheduleId = sid;
-      }
-
-      const mid = selectMuridBackfillNilai.value;
-      const backfillMeetingList = document.getElementById('backfillMeetingList');
-      const emptyBackfillNilai = document.getElementById('emptyBackfillNilai');
-      const countEl = document.getElementById('backfillMeetingCount');
-      const filledEl = document.getElementById('backfillFilledCount');
-      const emptyEl = document.getElementById('backfillEmptyCount');
-      if(!backfillMeetingList || !emptyBackfillNilai) return;
-
-      const recs = Object.entries(grades)
-        .filter(([k,r])=>r && r.scheduleId===sid)
-        .sort((a,b)=>Number(a[1].meeting)-Number(b[1].meeting));
-
-      backfillMeetingList.innerHTML='';
-      if(recs.length===0){
-        emptyBackfillNilai.style.display='block';
-        if(countEl) countEl.textContent='0';
-        if(filledEl) filledEl.textContent='0';
-        if(emptyEl) emptyEl.textContent='0';
-        return;
-      }
-      emptyBackfillNilai.style.display='none';
-
-      let filled=0;
-      recs.forEach(([key,rec])=>{
-        const existing = mid && rec.data && rec.data[mid]!==undefined ? rec.data[mid] : '';
-        if(existing!=='') filled++;
-        const row=document.createElement('div');
-        row.className='backfill-meeting-row';
-        row.dataset.key=key;
-        row.innerHTML=`
-          <div class="backfill-meeting-info">
-            <div class="backfill-meeting-title">Pertemuan ke-${escapeHtml(String(rec.meeting))}</div>
-            <div class="backfill-meeting-date">${rec.date ? escapeHtml(formatTanggalIndo(rec.date)) : 'Tanggal belum diisi'}</div>
-          </div>
-          <div class="backfill-meeting-status ${existing!==''?'done':'empty'}">${existing!==''?'Sudah ada':'Belum diisi'}</div>
-          <input class="backfill-meeting-input" type="number" min="0" max="100" step="1" inputmode="numeric" placeholder="-" data-key="${escapeHtml(key)}" value="${existing!==''?existing:''}">
-        `;
-        backfillMeetingList.appendChild(row);
-      });
-
-      if(countEl) countEl.textContent=String(recs.length);
-      if(filledEl) filledEl.textContent=String(filled);
-      if(emptyEl) emptyEl.textContent=String(recs.length-filled);
-
-      backfillMeetingList.querySelectorAll('.backfill-meeting-input').forEach(inp=>{
-        inp.addEventListener('input',()=>{
-          const status=inp.parentElement.querySelector('.backfill-meeting-status');
-          const filledNow=inp.value!=='';
-          status.textContent=filledNow?'Siap disimpan':'Belum diisi';
-          status.className=`backfill-meeting-status ${filledNow?'done':'empty'}`;
-        });
-      });
-    };
-
-    selectMuridBackfillNilai.addEventListener('change',function(){
-      window.renderBackfillNilai();
-    });
-  }
-
-  /* Extra safety: close only on explicit outside-click; scrolling must never close or lock the page. */
-  document.querySelectorAll('.modal-overlay').forEach(overlay=>{
-    overlay.addEventListener('wheel',e=>e.stopPropagation(),{passive:true});
-    overlay.addEventListener('touchmove',e=>e.stopPropagation(),{passive:true});
-  });
-})();
+/* BUGFIX: student selection is handled by the original stable renderer above. */
 </script>
 </body>
 </html>
