@@ -3876,8 +3876,17 @@ function simpanBackfillNilai(){
   showToast(`✅ ${changed} nilai pertemuan lama disimpan untuk ${getStudents(s.class).find(m=>m.id===mid)?.name || "siswa"}`);
 }
 
-selectJadwalBackfillNilai.addEventListener("change", renderBackfillNilai);
-selectMuridBackfillNilai.addEventListener("change", renderBackfillNilai);
+selectJadwalBackfillNilai.addEventListener("change", function(){
+  buildBackfillStudentOptions();
+  renderBackfillNilai();
+});
+selectMuridBackfillNilai.addEventListener("change", function(){
+  renderBackfillNilai();
+});
+
+// Sinkronkan pertama kali dengan daftar siswa pada tab Nilai
+// dan isi riwayat pertemuan dari data grades yang sama.
+buildBackfillStudentOptions();
 renderBackfillNilai();
 
 </script>
