@@ -1688,6 +1688,142 @@ header.topbar .sub{color:#a9bfd2!important;}
 textarea,input,select{color:#edf7ff !important;}
 ::placeholder{color:#6e889f !important;opacity:1 !important;}
 </style>
+<style id="no-white-global-final">
+/* GLOBAL NAVY SURFACE: remove legacy white surfaces from every tab */
+.card,
+.view .card,
+.history-item,
+.student-row,
+.nilai-row,
+.import-item,
+.retro-item,
+.retro-list,
+.backfill-att-row,
+.backfill-meeting-row,
+.modal-list-wrap,
+.jadwal-ticket .info,
+.jadwal-ticket,
+.repair-hub-intro,
+.edit-record-badge,
+.retro-section,
+.rekap-group,
+.rekap-table-wrap,
+#previewImportWrap,
+#previewRekapWrap,
+#previewRekapNilaiWrap,
+#listRiwayat,
+#listRiwayatNilai,
+#listDataMurid,
+#listAbsenMurid,
+#listNilaiMurid,
+#backfillAbsenList,
+#backfillMeetingList{
+  background-color:#0a1a2b !important;
+  color:#eaf6ff !important;
+}
+
+.view .card,
+.card{
+  background:linear-gradient(180deg,#0d2135 0%,#091a2b 100%) !important;
+}
+
+.history-item,
+.student-row,
+.nilai-row,
+.import-item,
+.retro-item,
+.backfill-att-row,
+.backfill-meeting-row{
+  background:linear-gradient(90deg,#0b1d30,#0a1a2b) !important;
+  border-bottom-color:#294761 !important;
+}
+.history-item:hover,
+.student-row:hover,
+.nilai-row:hover,
+.import-item:hover,
+.retro-item:hover,
+.backfill-att-row:hover,
+.backfill-meeting-row:hover{
+  background:#10263a !important;
+}
+
+.backfill-att-row.is-filled{background:linear-gradient(90deg,#0d2b2b,#0a1f30) !important;border-color:#245b59 !important;}
+.backfill-meeting-row{border:1px solid #294761 !important;border-radius:14px !important;}
+
+.backfill-att-btn,
+.backfill-meeting-input,
+.edit-status-btn,
+.retro-status-btn,
+.retro-grade,
+.nilai-input,
+.quick-nilai-btn,
+.icon-btn,
+.status-btn{
+  background:#0a1a2b !important;
+  color:#e5f2fb !important;
+  border-color:#31526d !important;
+}
+.backfill-att-btn.active[data-s="H"],.retro-status-btn.active[data-s="H"]{background:#123f41 !important;color:#5be8d0 !important;border-color:#20a996 !important;}
+.backfill-att-btn.active[data-s="I"],.retro-status-btn.active[data-s="I"]{background:#12365a !important;color:#69bfff !important;border-color:#347fc9 !important;}
+.backfill-att-btn.active[data-s="S"],.retro-status-btn.active[data-s="S"]{background:#4a3a17 !important;color:#ffd66e !important;border-color:#b78c30 !important;}
+.backfill-att-btn.active[data-s="A"],.retro-status-btn.active[data-s="A"]{background:#43202c !important;color:#ff8297 !important;border-color:#b74763 !important;}
+
+.backfill-att-title,
+.backfill-meeting-title,
+.retro-name,
+.student-name,
+.retro-main,
+.history-item .hdate,
+.card h2,.card h3,.card h4{color:#eef7ff !important;}
+.backfill-att-meta,
+.backfill-meeting-date,
+.retro-meta,
+.history-item .hcount,
+label,.hint{color:#8fa9bf !important;}
+
+.backfill-meeting-status.empty{background:#16283b !important;color:#8da3b7 !important;}
+.backfill-meeting-status.done{background:#123f41 !important;color:#5be8d0 !important;}
+.backfill-stat{background:#0b1f35 !important;color:#91abc0 !important;border-color:#294b66 !important;}
+
+.retro-list{border:1px solid #294760 !important;}
+.retro-item{border-color:#294760 !important;}
+.modal-list-wrap{background:#0a1a2b !important;border-color:#2b4b66 !important;}
+
+.rekap-group h4{background:linear-gradient(90deg,#102a40,#162741) !important;color:#8deaf6 !important;}
+.rekap-table-wrap{background:#091b2d !important;border-color:#294760 !important;}
+table.rekap-table th{background:#0c2239 !important;color:#8ba7c2 !important;}
+table.rekap-table td{background:#091b2d !important;color:#e0edf8 !important;}
+
+/* Inline legacy white backgrounds */
+.app [style*="background:#fff"],
+.app [style*="background: #fff"],
+.app [style*="background:#FFFFFF"],
+.app [style*="background: #FFFFFF"],
+.app [style*="background:white"],
+.app [style*="background: white"]{
+  background:#0a1a2b !important;
+  color:#eaf6ff !important;
+}
+
+/* No white surfaces in form controls anywhere */
+input,select,textarea,
+select:focus,input:focus,textarea:focus{
+  background:#08192b !important;
+  color:#edf7ff !important;
+}
+
+/* Keep the bottom dock and modal fully navy */
+nav.bottomnav,
+nav.bottomnav button,
+.modal-box{
+  background-color:#081827 !important;
+  color:#eaf6ff !important;
+}
+
+/* Prevent accidental white gradients from legacy hover/focus rules */
+.student-row:hover,.nilai-row:hover,.history-item:hover{background:#10263a !important;}
+.retro-list,.backfill-meeting-list,.backfill-att-row,.backfill-meeting-row{box-shadow:none !important;}
+</style>
 </head>
 <body>
 <div class="app">
@@ -3211,8 +3347,9 @@ let riwayatNilaiTargetKey = null;
 function bukaModalRiwayatNilai(key){
   riwayatNilaiTargetKey = key;
   const rec = grades[key];
+  if(!rec) return;
   const s = scheduleById(rec.scheduleId);
-  if(!rec || !s) return;
+  if(!s) return;
   document.getElementById("editNilaiPertemuan").value = rec.meeting || "";
   document.getElementById("editNilaiTanggal").value = rec.date || "";
   document.getElementById("riwayatNilaiDetailTitle").textContent = `Pertemuan ke-${rec.meeting} — ${s.class}`;
@@ -3734,5 +3871,331 @@ selectMuridBackfillNilai.addEventListener("change", renderBackfillNilai);
 renderBackfillNilai();
 
 </script>
+<style id="interaction-scroll-fix">
+/* ===== INTERACTION FIX ===== */
+/* Modal tidak boleh melebar/terpotong saat daftar siswa banyak */
+.modal-overlay{
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+  align-items:center !important;
+  padding:20px !important;
+  -webkit-overflow-scrolling:touch;
+}
+.modal-overlay.active{
+  overscroll-behavior:contain;
+}
+.modal-box{
+  width:min(820px,100%) !important;
+  max-width:820px !important;
+  max-height:calc(100vh - 40px) !important;
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+  margin:auto !important;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+}
+.modal-list-wrap{
+  max-height:58vh !important;
+  overflow-y:auto !important;
+  -webkit-overflow-scrolling:touch;
+}
+#riwayatNilaiDetailList,#riwayatDetailList,#riwayatSiswaBody{
+  max-height:none !important; overflow:visible !important;
+}
+.student-num{
+  flex:0 0 30px !important; min-width:30px !important; width:30px !important; height:30px !important;
+  display:flex !important; align-items:center !important; justify-content:center !important;
+}
+.edit-meta-grid input[type="number"]{ -moz-appearance:textfield; }
+.edit-meta-grid input[type="number"]::-webkit-outer-spin-button,.edit-meta-grid input[type="number"]::-webkit-inner-spin-button{ opacity:1; margin:0; }
+#selectMuridBackfillAbsen,#selectMuridBackfillNilai,#selectJadwalBackfillAbsen,#selectJadwalBackfillNilai,#editNilaiPertemuan,#editNilaiTanggal{
+  position:relative !important; z-index:2 !important; pointer-events:auto !important;
+}
+@media(max-width:700px){
+  .modal-overlay{align-items:flex-start !important; padding:10px !important;}
+  .modal-box{width:100% !important; max-height:calc(100vh - 20px) !important; border-radius:20px !important; margin:auto 0 !important;}
+  .modal-list-wrap{max-height:62vh !important;}
+}
+</style>
+
+<!-- FINAL INTERACTION PATCH: dropdown selection + page/modal scrolling -->
+<style id="final-interaction-patch">
+html,body{
+  height:auto !important;
+  min-height:100% !important;
+  overflow-x:hidden !important;
+  overflow-y:auto !important;
+}
+body{
+  overscroll-behavior-y:auto !important;
+  touch-action:pan-y !important;
+}
+.app{min-height:100vh !important;}
+main{
+  overflow:visible !important;
+  padding-bottom:150px !important;
+}
+.view{overflow:visible !important;}
+.card{overflow:visible !important;}
+.student-row,.nilai-row{min-height:56px;}
+/* Dropdowns must remain native, clickable, and visually above decorative layers. */
+select,
+#selectJadwalBackfillAbsen,
+#selectMuridBackfillAbsen,
+#selectJadwalBackfillNilai,
+#selectMuridBackfillNilai{
+  pointer-events:auto !important;
+  position:relative !important;
+  z-index:20 !important;
+  cursor:pointer !important;
+}
+/* Long lists scroll naturally with the page instead of being trapped. */
+#listAbsenMurid,
+#listNilaiMurid,
+#listDataMurid,
+#listRiwayat,
+#listRiwayatNilai,
+#backfillAbsenList,
+#backfillMeetingList{
+  overflow:visible !important;
+}
+/* Modal: full content can be scrolled independently when it exceeds the screen. */
+.modal-overlay{
+  position:fixed !important;
+  inset:0 !important;
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+  -webkit-overflow-scrolling:touch !important;
+  touch-action:pan-y !important;
+  align-items:flex-start !important;
+  padding:20px !important;
+}
+.modal-overlay.active{display:flex !important;}
+.modal-box{
+  width:min(820px,100%) !important;
+  max-width:820px !important;
+  max-height:calc(100vh - 40px) !important;
+  margin:auto !important;
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+  -webkit-overflow-scrolling:touch !important;
+  overscroll-behavior:contain !important;
+}
+#riwayatDetailList,
+#riwayatNilaiDetailList,
+#riwayatSiswaBody{
+  max-height:none !important;
+  overflow:visible !important;
+}
+/* Backfill lists keep a usable internal scroll for very large historical datasets. */
+#backfillAbsenList,
+#backfillMeetingList{
+  max-height:48vh !important;
+  overflow-y:auto !important;
+  -webkit-overflow-scrolling:touch !important;
+  overscroll-behavior:contain !important;
+  padding-right:4px;
+}
+@media(max-width:700px){
+  main{padding-bottom:120px !important;}
+  .modal-overlay{padding:10px !important;}
+  .modal-box{
+    width:100% !important;
+    max-height:calc(100vh - 20px) !important;
+    border-radius:20px !important;
+    margin:auto 0 !important;
+  }
+  #backfillAbsenList,
+  #backfillMeetingList{max-height:54vh !important;}
+}
+</style>
+<script id="final-interaction-patch-js">
+/* Keep the selected student stable while switching names. */
+(function(){
+  if(typeof selectMuridBackfillAbsen === 'undefined' || typeof selectJadwalBackfillAbsen === 'undefined') return;
+
+  const originalBuildAbsen = window.buildMuridBackfillAbsen;
+  window.buildMuridBackfillAbsen = function(){
+    const previousStudent = selectMuridBackfillAbsen.value;
+    if(typeof originalBuildAbsen === 'function') originalBuildAbsen();
+    if(previousStudent && [...selectMuridBackfillAbsen.options].some(o=>o.value===previousStudent)){
+      selectMuridBackfillAbsen.value = previousStudent;
+    }
+    if(typeof window.renderBackfillAbsen === 'function') window.renderBackfillAbsen();
+  };
+
+  /* The original Nilai renderer rebuilt the student dropdown on every change,
+     which forced the selection back to student #1. Replace it with a state-aware renderer. */
+  if(typeof selectMuridBackfillNilai !== 'undefined' && typeof selectJadwalBackfillNilai !== 'undefined'){
+    let lastNilaiScheduleId = null;
+
+    window.renderBackfillNilai = function(){
+      const sid = selectJadwalBackfillNilai.value;
+      const s = typeof scheduleById === 'function' ? scheduleById(sid) : null;
+      const oldStudent = selectMuridBackfillNilai.value;
+      const scheduleChanged = sid !== lastNilaiScheduleId;
+
+      if(scheduleChanged){
+        selectMuridBackfillNilai.innerHTML = '';
+        const list = s ? getStudents(s.class) : [];
+        if(!s){
+          selectMuridBackfillNilai.innerHTML = '<option value="">Pilih jadwal terlebih dahulu</option>';
+        }else if(list.length===0){
+          selectMuridBackfillNilai.innerHTML = '<option value="">Belum ada siswa di kelas ini</option>';
+        }else{
+          list.forEach((m,idx)=>{
+            const opt=document.createElement('option');
+            opt.value=m.id;
+            opt.textContent=`${idx+1}. ${m.name}`;
+            selectMuridBackfillNilai.appendChild(opt);
+          });
+          selectMuridBackfillNilai.value = list.some(m=>m.id===oldStudent) ? oldStudent : list[0].id;
+        }
+        lastNilaiScheduleId = sid;
+      }
+
+      const mid = selectMuridBackfillNilai.value;
+      const backfillMeetingList = document.getElementById('backfillMeetingList');
+      const emptyBackfillNilai = document.getElementById('emptyBackfillNilai');
+      const countEl = document.getElementById('backfillMeetingCount');
+      const filledEl = document.getElementById('backfillFilledCount');
+      const emptyEl = document.getElementById('backfillEmptyCount');
+      if(!backfillMeetingList || !emptyBackfillNilai) return;
+
+      const recs = Object.entries(grades)
+        .filter(([k,r])=>r && r.scheduleId===sid)
+        .sort((a,b)=>Number(a[1].meeting)-Number(b[1].meeting));
+
+      backfillMeetingList.innerHTML='';
+      if(recs.length===0){
+        emptyBackfillNilai.style.display='block';
+        if(countEl) countEl.textContent='0';
+        if(filledEl) filledEl.textContent='0';
+        if(emptyEl) emptyEl.textContent='0';
+        return;
+      }
+      emptyBackfillNilai.style.display='none';
+
+      let filled=0;
+      recs.forEach(([key,rec])=>{
+        const existing = mid && rec.data && rec.data[mid]!==undefined ? rec.data[mid] : '';
+        if(existing!=='') filled++;
+        const row=document.createElement('div');
+        row.className='backfill-meeting-row';
+        row.dataset.key=key;
+        row.innerHTML=`
+          <div class="backfill-meeting-info">
+            <div class="backfill-meeting-title">Pertemuan ke-${escapeHtml(String(rec.meeting))}</div>
+            <div class="backfill-meeting-date">${rec.date ? escapeHtml(formatTanggalIndo(rec.date)) : 'Tanggal belum diisi'}</div>
+          </div>
+          <div class="backfill-meeting-status ${existing!==''?'done':'empty'}">${existing!==''?'Sudah ada':'Belum diisi'}</div>
+          <input class="backfill-meeting-input" type="number" min="0" max="100" step="1" inputmode="numeric" placeholder="-" data-key="${escapeHtml(key)}" value="${existing!==''?existing:''}">
+        `;
+        backfillMeetingList.appendChild(row);
+      });
+
+      if(countEl) countEl.textContent=String(recs.length);
+      if(filledEl) filledEl.textContent=String(filled);
+      if(emptyEl) emptyEl.textContent=String(recs.length-filled);
+
+      backfillMeetingList.querySelectorAll('.backfill-meeting-input').forEach(inp=>{
+        inp.addEventListener('input',()=>{
+          const status=inp.parentElement.querySelector('.backfill-meeting-status');
+          const filledNow=inp.value!=='';
+          status.textContent=filledNow?'Siap disimpan':'Belum diisi';
+          status.className=`backfill-meeting-status ${filledNow?'done':'empty'}`;
+        });
+      });
+    };
+
+    selectMuridBackfillNilai.addEventListener('change',function(){
+      window.renderBackfillNilai();
+    });
+  }
+
+  /* Extra safety: close only on explicit outside-click; scrolling must never close or lock the page. */
+  document.querySelectorAll('.modal-overlay').forEach(overlay=>{
+    overlay.addEventListener('wheel',e=>e.stopPropagation(),{passive:true});
+    overlay.addEventListener('touchmove',e=>e.stopPropagation(),{passive:true});
+  });
+})();
+</script>
 </body>
 </html>
+<style id="interaction-scroll-fix">
+/* ===== INTERACTION FIX ===== */
+/* Modal tidak boleh melebar/terpotong saat daftar siswa banyak */
+.modal-overlay{
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+  align-items:center !important;
+  padding:20px !important;
+  -webkit-overflow-scrolling:touch;
+}
+.modal-overlay.active{
+  overscroll-behavior:contain;
+}
+.modal-box{
+  width:min(820px,100%) !important;
+  max-width:820px !important;
+  max-height:calc(100vh - 40px) !important;
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+  margin:auto !important;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+}
+.modal-list-wrap{
+  max-height:58vh !important;
+  overflow-y:auto !important;
+  -webkit-overflow-scrolling:touch;
+}
+#riwayatNilaiDetailList,
+#riwayatDetailList,
+#riwayatSiswaBody{
+  max-height:none !important;
+  overflow:visible !important;
+}
+/* Nomor siswa/meeting tidak boleh tampak seperti elemen yang tertahan */
+.student-num{
+  flex:0 0 30px !important;
+  min-width:30px !important;
+  width:30px !important;
+  height:30px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+}
+.edit-meta-grid input[type="number"]{
+  -moz-appearance:textfield;
+}
+.edit-meta-grid input[type="number"]::-webkit-outer-spin-button,
+.edit-meta-grid input[type="number"]::-webkit-inner-spin-button{
+  opacity:1;
+  margin:0;
+}
+/* Dropdown siswa/jadwal tetap bisa menerima klik dan pilihan */
+#selectMuridBackfillAbsen,
+#selectMuridBackfillNilai,
+#selectJadwalBackfillAbsen,
+#selectJadwalBackfillNilai,
+#editNilaiPertemuan,
+#editNilaiTanggal{
+  position:relative !important;
+  z-index:2 !important;
+  pointer-events:auto !important;
+}
+@media(max-width:700px){
+  .modal-overlay{
+    align-items:flex-start !important;
+    padding:10px !important;
+  }
+  .modal-box{
+    width:100% !important;
+    max-height:calc(100vh - 20px) !important;
+    border-radius:20px !important;
+    margin:auto 0 !important;
+  }
+  .modal-list-wrap{max-height:62vh !important;}
+}
+</style>
