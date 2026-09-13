@@ -1581,6 +1581,113 @@ nav.bottomnav button{
   nav.bottomnav button{padding:7px 4px 9px !important; font-size:10px !important;}
 }
 </style>
+
+<style id="final-visibility-fix">
+/* Final visual correction: keep the elegant navy theme while preserving readable contrast */
+:root{
+  --ink:#e8f2fb;
+  --ink-soft:#91a8bf;
+  --paper:#071321;
+  --card:#0b1b2b;
+  --line:#28445e;
+  --teal:#48d6e5;
+  --teal-dark:#b9f5ff;
+  --amber:#8cc8ff;
+  --amber-soft:#152b42;
+}
+html,body{background:#071321!important;color:#e8f2fb!important;}
+body{background:
+  radial-gradient(circle at 10% 0%, rgba(41,118,166,.12), transparent 30%),
+  radial-gradient(circle at 90% 8%, rgba(31,89,154,.13), transparent 28%),
+  #071321!important;
+}
+main{color:#e8f2fb!important;}
+.card{
+  background:linear-gradient(180deg,#0d2134 0%,#0a1a2b 100%)!important;
+  border:1px solid #294a66!important;
+  color:#e8f2fb!important;
+  box-shadow:0 14px 34px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.02)!important;
+}
+.card h2{color:#eaf6ff!important;}
+.card h2 .tag{background:#12324b!important;color:#79e4f2!important;border-color:#275a73!important;}
+label{color:#8fa8c0!important;}
+.hint{color:#7893ad!important;}
+.divider{background:#234058!important;}
+select,input[type=date],input[type=text],input[type=month],input[type=number],textarea{
+  background:#08192b!important;
+  color:#eaf6ff!important;
+  border-color:#2b4a65!important;
+}
+select::placeholder,input::placeholder,textarea::placeholder{color:#667f98!important;}
+select:focus,input:focus,textarea:focus{border-color:#55dbe9!important;box-shadow:0 0 0 3px rgba(85,219,233,.08)!important;}
+select option,select optgroup{background:#0b1b2b!important;color:#eaf6ff!important;}
+.jadwal-ticket{background:#0a1a2a!important;border-color:#2a4a64!important;}
+.jadwal-ticket .info{background:#0b1d30!important;}
+.jadwal-ticket .subj{color:#eef8ff!important;}
+.jadwal-ticket .meta{color:#8fa8c0!important;}
+.student-row,.nilai-row,.history-item,.backfill-meeting-row{border-bottom-color:#26445f!important;}
+.student-name{color:#eef7ff!important;}
+.student-name .kls-sub{color:#7992aa!important;}
+.student-num{background:#0f2940!important;color:#78e2ef!important;border-color:#25536d!important;}
+.status-btn,.icon-btn,.quick-nilai-btn{background:#0a1a2b!important;color:#9ab0c4!important;border-color:#294661!important;}
+.status-btn.active[data-s="H"]{background:#123f41!important;color:#5be8d0!important;border-color:#20a996!important;}
+.status-btn.active[data-s="I"]{background:#12365a!important;color:#69bfff!important;border-color:#347fc9!important;}
+.status-btn.active[data-s="S"]{background:#4a3a17!important;color:#ffd66e!important;border-color:#b78c30!important;}
+.status-btn.active[data-s="A"]{background:#43202c!important;color:#ff8297!important;border-color:#b74763!important;}
+.quick-nilai-btn.active{background:linear-gradient(135deg,#0ea7c3,#3565b5)!important;color:#fff!important;border-color:#52d9e7!important;}
+.nilai-input,.backfill-meeting-input{background:#08192b!important;color:#ecf8ff!important;border-color:#2b4a65!important;}
+.nilai-badge.bagus{background:#123f3b!important;color:#5be8cf!important;}
+.nilai-badge.cukup{background:#4a3a17!important;color:#ffd66e!important;}
+.nilai-badge.kurang{background:#43202c!important;color:#ff8297!important;}
+.absen-status-badge.st-none{background:#16283b!important;color:#8299b1!important;border-color:#2b465f!important;}
+.summary-chip{box-shadow:inset 0 0 0 1px rgba(255,255,255,.04)!important;}
+.rekap-group h4{color:#8deaf6!important;background:linear-gradient(90deg,#102a40,#162741)!important;border-color:#294d69!important;}
+.rekap-table-wrap{border-color:#294760!important;}
+table.rekap-table th{background:#0c2239!important;color:#8ba7c2!important;border-color:#294760!important;}
+table.rekap-table td{background:#091b2d!important;color:#e0edf8!important;border-color:#294760!important;}
+table.rekap-table td.nama-cell{color:#eef7ff!important;}
+.empty-state{color:#7f98af!important;}
+.modal-box{background:linear-gradient(180deg,#0d2135,#08192a)!important;color:#eaf6ff!important;border-color:#2d4d68!important;}
+.modal-box h3{color:#eaf7ff!important;}
+.modal-list-wrap{background:#0a1b2c!important;border-color:#2b4b66!important;}
+nav.bottomnav{background:rgba(8,20,34,.96)!important;border-top-color:#29455f!important;box-shadow:0 -10px 28px rgba(0,0,0,.25)!important;}
+nav.bottomnav button{color:#728ba5!important;}
+nav.bottomnav button.active{color:#76e6f2!important;background:#10263b!important;}
+nav.bottomnav button .ic{background:#0c2136!important;color:#80c9dd!important;border-color:#264762!important;}
+nav.bottomnav button.active .ic{background:linear-gradient(135deg,#17677e,#315a92)!important;color:#eefcff!important;border-color:#50d7e7!important;}
+button.btn-outline{color:#7ee2ef!important;background:#0b1d30!important;border-color:#315d74!important;}
+button.btn-ghost{color:#9bb0c3!important;background:#0a192a!important;border-color:#29445c!important;}
+button.btn-primary{color:#fff!important;}
+/* Inline styles from legacy sections: force readable headings against the navy surface */
+.card h3,.card h4,.card b,.card strong{color:#eaf6ff;}
+.card [style*="color:#5B6B74"],
+.card [style*="color:var(--teal-dark)"],
+.card [style*="color:#8a6415"]{color:#9fcae2!important;}
+header.topbar{background:linear-gradient(135deg,#091b2e,#10334d)!important;}
+header.topbar h1{color:#f2f8ff!important;}
+header.topbar .sub{color:#a9bfd2!important;}
+.toast{background:#071624!important;color:#dffaff!important;border-color:#2b536e!important;}
+</style>
+
+<style id="final-contrast-fix">
+/* FINAL CONTRAST FIX: jangan biarkan style legacy membuat permukaan putih */
+.jadwal-ticket .meta span{
+  background:#102a40 !important;
+  border:1px solid #2c536d !important;
+  color:#bfeaf2 !important;
+}
+.jadwal-ticket .meta span *{color:inherit !important;}
+.jadwal-ticket .day-strip{color:#eafcff !important;}
+.jadwal-ticket .info{background:#0b1d30 !important;color:#eef7ff !important;}
+.jadwal-ticket .subj{color:#f5fbff !important;}
+.jadwal-ticket .meta{color:#9fc0d1 !important;}
+.student-name,.nilai-row .student-name,.history-item .hdate,.card h2,.card h3,.card h4{color:#eef7ff !important;}
+.student-name .kls-sub,.history-item .hcount,.hint{color:#8eaac0 !important;}
+.status-btn,.icon-btn,.quick-nilai-btn{background:#0a1a2b !important;color:#d8e7f2 !important;}
+.edit-status-btn,.backfill-att-btn,.retro-status-btn{background:#0a1a2b !important;color:#d8e7f2 !important;border-color:#2b4a65 !important;}
+textarea,input,select{color:#edf7ff !important;}
+::placeholder{color:#6e889f !important;opacity:1 !important;}
+</style>
 </head>
 <body>
 <div class="app">
