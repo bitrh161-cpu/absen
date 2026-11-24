@@ -1964,6 +1964,7 @@ nav.bottomnav button,
           <span class="emoji">🔎</span>
           Nama murid tidak ditemukan. Coba kata kunci lain.
         </div>
+        <div class="cr-live" id="liveRataNilai">📈 Rata-rata akan muncul otomatis setelah nilai diisi.</div>
         <button class="btn btn-primary" style="margin-top:16px;" onclick="simpanNilai()">💾 Simpan Nilai</button>
       </div>
 
@@ -1971,6 +1972,12 @@ nav.bottomnav button,
         <span class="emoji">💯</span>
         Pilih jadwal & pertemuan di atas untuk mulai menilai murid.<br>
         Jika daftar murid masih kosong, tambahkan dulu di menu <b>Data Murid</b>.
+      </div>
+
+      <div class="card" id="cardRataNilai">
+        <h2>📈 Rata-rata Nilai Murid</h2>
+        <div class="hint" id="rataNilaiInfo" style="margin-top:0;"></div>
+        <div id="rataNilaiWrap"></div>
       </div>
 
       <div class="card">
@@ -2146,6 +2153,46 @@ nav.bottomnav button,
 
     </section>
 
+    <!-- ===================== VIEW: CARI & EDIT BANYAK SISWA ===================== -->
+    <section class="view" id="view-cari">
+      <div class="card">
+        <h2>🔍 Cari & Edit Banyak Siswa</h2>
+        <label for="inputCariBanyak">Ketik nama siswa (boleh banyak sekaligus)</label>
+        <textarea id="inputCariBanyak" autocomplete="off" placeholder="Contoh: andi, budi, siti&#10;Pisahkan dengan koma atau baris baru. Sebagian nama juga bisa."></textarea>
+        <div class="hint">Semua siswa yang namanya cocok dengan salah satu kata akan muncul. Ketuk nama di bawah untuk memilih atau membatalkan.</div>
+        <label for="selectKelasCari">Kelas</label>
+        <select id="selectKelasCari"></select>
+        <label for="selectMapelCari">Mata Pelajaran</label>
+        <select id="selectMapelCari"></select>
+      </div>
+
+      <div class="card" id="cardPilihCari">
+        <h2>👥 Siswa Ditemukan <span class="tag" id="tagCari"></span></h2>
+        <div id="pilihCari"></div>
+        <div class="row-btns" id="aksiCari" style="display:none;">
+          <button class="btn btn-ghost btn-sm" type="button" onclick="cariPilihSemua()">✓ Pilih semua</button>
+          <button class="btn btn-ghost btn-sm" type="button" onclick="cariKosongkan()">✕ Kosongkan pilihan</button>
+        </div>
+      </div>
+
+      <div class="card" id="cardHasilCari" style="display:none;">
+        <h2>📊 Nilai & Daftar Hadir</h2>
+        <div class="cr-bar">
+          <div class="cr-bar-info" id="cariPendInfo"></div>
+          <div class="row-btns" style="margin-top:8px;">
+            <button class="btn btn-ghost btn-sm" type="button" onclick="batalCari()">↺ Batalkan</button>
+            <button class="btn btn-primary btn-sm" type="button" onclick="simpanSemuaCari()">💾 Simpan Perubahan</button>
+          </div>
+        </div>
+        <div class="hint">Semua kolom bisa diedit langsung: nilai, status hadir (ketuk lagi untuk mengosongkan), nomor pertemuan, dan tanggal. <b>Catatan:</b> tanggal absen dan nomor pertemuan adalah milik satu sesi kelas, jadi jika diubah, sesi itu berpindah untuk seluruh murid di kelas tersebut.</div>
+        <div class="row-btns">
+          <button class="btn btn-amber" type="button" onclick="unduhExcelCari()">📊 Unduh Excel</button>
+          <button class="btn btn-outline" type="button" onclick="cetakCari()">🖨️ Cetak / PDF</button>
+        </div>
+        <div id="hasilCari"></div>
+      </div>
+    </section>
+
   </main>
 
   <!-- area khusus untuk cetak (diisi ulang saat tombol Cetak ditekan) -->
@@ -2169,6 +2216,9 @@ nav.bottomnav button,
     </button>
     <button data-view="perbaikan" onclick="gantiView('perbaikan')">
       <span class="ic">🛠️</span> Perbaikan
+    </button>
+    <button data-view="cari" onclick="gantiView('cari')">
+      <span class="ic">🔍</span> Cari
     </button>
   </nav>
 
@@ -3889,6 +3939,354 @@ selectMuridBackfillNilai.addEventListener("change", function(){
 buildBackfillStudentOptions();
 renderBackfillNilai();
 
+
+/* ============================================================
+   TAMBAHAN: RATA-RATA NILAI OTOMATIS (tab Nilai)
+   ============================================================ */
+function rataArr(a){ return a.length ? a.reduce((x,y)=>x+y,0)/a.length : null; }
+function fmtRata(v){ return v==null ? "-" : v.toFixed(1); }
+
+function updateLiveRataNilai(){
+  const el = document.getElementById("liveRataNilai"); if(!el) return;
+  const s = scheduleById(selectJadwalNilai.value);
+  const vals = Object.values(currentNilai||{}).filter(v=>v!=="" && v!=null).map(Number).filter(n=>!isNaN(n));
+  const total = s ? getStudents(s.class).length : 0;
+  el.innerHTML = vals.length
+    ? `📈 Rata-rata kelas pertemuan ini: <b>${fmtRata(rataArr(vals))}</b> · ${vals.length} dari ${total} murid sudah dinilai`
+    : "📈 Rata-rata akan muncul otomatis setelah nilai diisi.";
+}
+
+function renderRataNilai(){
+  const wrap = document.getElementById("rataNilaiWrap"), info = document.getElementById("rataNilaiInfo");
+  if(!wrap) return;
+  const s = scheduleById(selectJadwalNilai.value);
+  if(!s){ wrap.innerHTML = ""; info.textContent = ""; return; }
+  const recs = Object.values(grades).filter(r=>r && r.scheduleId===s.id);
+  const list = getStudents(s.class);
+  const q = normalisasiTeks((document.getElementById("inputCariMuridNilai")||{}).value || "");
+  const rows = list.map((m,i)=>{
+    const v = recs.map(r=>r.data && r.data[m.id]).filter(x=>x!==undefined && x!=="" && x!==null).map(Number).filter(n=>!isNaN(n));
+    return {no:i+1, nama:m.name, n:v.length, rata:rataArr(v)};
+  });
+  const ada = rows.filter(r=>r.rata!=null);
+  if(!recs.length || !ada.length){
+    info.textContent = `${s.subject} — ${s.class}`;
+    wrap.innerHTML = `<div class="empty-state"><span class="emoji">📈</span>Belum ada nilai tersimpan untuk jadwal ini.</div>`;
+    return;
+  }
+  info.innerHTML = `${escapeHtml(s.subject)} — ${escapeHtml(s.class)} · ${recs.length} pertemuan tersimpan · Rata-rata kelas: <b>${fmtRata(rataArr(ada.map(r=>r.rata)))}</b> (dihitung otomatis)`;
+  const body = rows.filter(r=>q==="" || normalisasiTeks(r.nama).includes(q)).map(r=>
+    `<tr><td>${r.no}</td><td class="nama-cell">${escapeHtml(r.nama)}</td><td>${r.n}</td><td class="total-h">${fmtRata(r.rata)}</td></tr>`).join("");
+  wrap.innerHTML = `<div class="rekap-table-wrap"><table class="rekap-table"><thead><tr><th>No</th><th style="text-align:left;">Nama Murid</th><th>Dinilai</th><th>Rata²</th></tr></thead><tbody>${body || '<tr><td colspan="4">Nama tidak ditemukan.</td></tr>'}</tbody></table></div>`;
+}
+
+(function hookRataNilai(){
+  const _rnl = renderNilaiList;
+  renderNilaiList = function(){ _rnl.apply(this, arguments); renderRataNilai(); updateLiveRataNilai(); };
+  const _rrn = renderRiwayatNilai;
+  renderRiwayatNilai = function(){ _rrn.apply(this, arguments); renderRataNilai(); };
+  const _isi = isiNilaiSemua;
+  isiNilaiSemua = function(){ _isi.apply(this, arguments); updateLiveRataNilai(); };
+  const refresh = ()=>{ renderRataNilai(); updateLiveRataNilai(); };
+  selectJadwalNilai.addEventListener("change", refresh);
+  inputPertemuan.addEventListener("change", refresh);
+  const list = document.getElementById("listNilaiMurid");
+  list.addEventListener("input", updateLiveRataNilai);
+  list.addEventListener("click", updateLiveRataNilai);
+  document.getElementById("inputCariMuridNilai").addEventListener("input", renderRataNilai);
+})();
+renderRataNilai();
+updateLiveRataNilai();
+
+/* ============================================================
+   TAMBAHAN: CARI & EDIT BANYAK SISWA
+   Data tetap memakai records / grades yang sama dengan fitur lain.
+   Perubahan ditampung dulu (pend) dan baru ditulis saat tombol Simpan ditekan.
+   ============================================================ */
+const cariState = { unchecked:new Set(), pend:{astat:{}, adate:{}, gval:{}, gmeet:{}, gdate:{}} };
+const $c = id => document.getElementById(id);
+const PEND = () => cariState.pend;
+function cariPendCount(){ const p=PEND(); return Object.keys(p.astat).length+Object.keys(p.adate).length+Object.keys(p.gval).length+Object.keys(p.gmeet).length+Object.keys(p.gdate).length; }
+function cariTerms(){ return $c("inputCariBanyak").value.split(/[\n,;]+/).map(normalisasiTeks).filter(Boolean); }
+
+function cariFillMapel(){
+  const sk=$c("selectKelasCari"), sm=$c("selectMapelCari"), om=sm.value;
+  const sch=SCHEDULE.filter(s=>sk.value==="*" || s.class===sk.value);
+  sm.innerHTML = '<option value="*">Semua mata pelajaran</option>' + sch.map(s=>`<option value="${s.id}">${escapeHtml(s.subject)} — ${escapeHtml(s.class)}</option>`).join("");
+  if([...sm.options].some(o=>o.value===om)) sm.value=om;
+}
+function cariFillSelects(){
+  const sk=$c("selectKelasCari"), ok=sk.value;
+  sk.innerHTML = '<option value="*">Semua kelas</option>' + ROMBEL_LIST.map(k=>`<option value="${k}">${escapeHtml(k)}</option>`).join("");
+  if([...sk.options].some(o=>o.value===ok)) sk.value=ok;
+  cariFillMapel();
+}
+function loadCari(){ cariFillSelects(); renderCari(); }
+
+function cariMatches(){
+  const terms=cariTerms(); if(!terms.length) return [];
+  const kf=$c("selectKelasCari").value, mf=$c("selectMapelCari").value;
+  const mapelCls=(mf && mf!=="*") ? (scheduleById(mf)||{}).class : null;
+  const out=[];
+  ROMBEL_LIST.forEach(k=>{
+    if(kf!=="*" && k!==kf) return;
+    if(mapelCls && k!==mapelCls) return;
+    (students[k]||[]).forEach(m=>{ const n=normalisasiTeks(m.name); if(terms.some(t=>n.includes(t))) out.push({k,m}); });
+  });
+  return out;
+}
+const cariPicked = () => cariMatches().filter(x=>!cariState.unchecked.has(x.m.id));
+function cariSchedulesFor(k){ const mf=$c("selectMapelCari").value; return SCHEDULE.filter(s=>s.class===k && (mf==="*" || s.id===mf)); }
+function cariSessions(s){
+  const att=Object.entries(records).filter(([k,r])=>r && r.scheduleId===s.id && r.date).sort((a,b)=>a[1].date.localeCompare(b[1].date));
+  const gr=Object.entries(grades).filter(([k,r])=>r && r.scheduleId===s.id).sort((a,b)=>Number(a[1].meeting)-Number(b[1].meeting));
+  return {att, gr};
+}
+const nilaiAda = v => v!==undefined && v!=="" && v!==null && !isNaN(Number(v));
+function cariStudentStats(k,m){
+  const nilai=[], n={H:0,I:0,S:0,A:0}; let total=0;
+  cariSchedulesFor(k).forEach(s=>{
+    const {att,gr}=cariSessions(s);
+    att.forEach(([,r])=>{ const st=r.data && r.data[m.id]; if(st && n[st]!==undefined){ n[st]++; total++; } });
+    gr.forEach(([,r])=>{ const v=r.data && r.data[m.id]; if(nilaiAda(v)) nilai.push(Number(v)); });
+  });
+  return {avg:rataArr(nilai), n, persen: total ? Math.round(n.H/total*100)+"%" : "-"};
+}
+
+function cariCardHTML(k,m){
+  const st=cariStudentStats(k,m), p=PEND(), mid=m.id;
+  const col={H:"#55f0cf",I:"#7db4ff",S:"#ffc44d",A:"#ff7d91"};
+  const chips=`<div class="cr-chips"><div class="cr-chip"><b>${fmtRata(st.avg)}</b>Rata nilai</div>`+
+    ["H","I","S","A"].map(c=>`<div class="cr-chip" style="color:${col[c]}"><b>${st.n[c]}</b>${STATUS_LABEL[c]}</div>`).join("")+
+    `<div class="cr-chip"><b>${st.persen}</b>% Hadir</div></div>`;
+  let body="";
+  cariSchedulesFor(k).forEach(s=>{
+    const {att,gr}=cariSessions(s);
+    if(!att.length && !gr.length) return;
+    body+=`<div class="cr-sched">📘 ${escapeHtml(s.subject)} <small>· ${escapeHtml(s.day)}, ${s.start}-${s.end}</small></div>`;
+    body+=`<div class="cr-sub">💯 Nilai (${gr.length} pertemuan)</div>`;
+    if(!gr.length) body+=`<div class="hint">Belum ada pertemuan nilai tersimpan.</div>`;
+    gr.forEach(([key,r])=>{
+      const orig = r.data && r.data[mid]!==undefined ? String(r.data[mid]) : "";
+      const vk=key+"|"+mid;
+      const val = p.gval[vk]!==undefined ? p.gval[vk] : orig;
+      const meet = p.gmeet[key]!==undefined ? p.gmeet[key] : String(r.meeting);
+      const dt = p.gdate[key]!==undefined ? p.gdate[key] : (r.date||"");
+      const changed = p.gval[vk]!==undefined || p.gmeet[key]!==undefined || p.gdate[key]!==undefined;
+      body+=`<div class="cr-row ${changed?"is-changed":""}" data-kind="g" data-key="${key}" data-mid="${mid}">
+        <div class="cr-fields">
+          <div><label>Pertemuan ke-</label><input type="number" min="1" step="1" inputmode="numeric" class="cr-g-meet" data-key="${key}" data-orig="${escapeHtml(String(r.meeting))}" value="${escapeHtml(String(meet))}"></div>
+          <div><label>Tanggal</label><input type="date" class="cr-g-date" data-key="${key}" data-orig="${r.date||""}" value="${dt}"></div>
+          <div><label>Nilai</label><input type="number" min="0" max="100" inputmode="numeric" placeholder="-" class="nilai-input cr-g-val" data-vk="${vk}" data-orig="${orig}" value="${escapeHtml(String(val))}"></div>
+        </div></div>`;
+    });
+    body+=`<div class="cr-sub">📋 Kehadiran (${att.length} pertemuan)</div>`;
+    if(!att.length) body+=`<div class="hint">Belum ada absensi tersimpan.</div>`;
+    att.forEach(([key,r])=>{
+      const orig=(r.data && r.data[mid]) || "";
+      const ak=key+"|"+mid;
+      const cur = p.astat[ak]!==undefined ? p.astat[ak] : orig;
+      const dt = p.adate[key]!==undefined ? p.adate[key] : r.date;
+      const changed = p.astat[ak]!==undefined || p.adate[key]!==undefined;
+      body+=`<div class="cr-row cr-att ${changed?"is-changed":""}" data-kind="a" data-key="${key}" data-mid="${mid}">
+        <div><label>Tanggal</label><input type="date" class="cr-a-date" data-key="${key}" data-orig="${r.date}" value="${dt}"></div>
+        <div><label>Status <span class="cr-none">${cur?"":"(belum diisi)"}</span></label>
+          <div class="status-group" data-ak="${ak}" data-orig="${orig}">
+            ${["H","I","S","A"].map(x=>`<button type="button" class="status-btn ${cur===x?"active":""}" data-s="${x}" title="${STATUS_LABEL[x]}">${x}</button>`).join("")}
+          </div></div>
+      </div>`;
+    });
+  });
+  if(!body) body=`<div class="hint" style="margin-top:10px;">Belum ada data nilai atau absensi tersimpan untuk jadwal ini.</div>`;
+  return `<div class="cr-card"><h3>${escapeHtml(m.name)} <small>· ${escapeHtml(k)}</small></h3>${chips}${body}</div>`;
+}
+
+function renderCari(){
+  const m=cariMatches(), sel=m.filter(x=>!cariState.unchecked.has(x.m.id)), terms=cariTerms(), pc=cariPendCount();
+  $c("tagCari").textContent = terms.length ? `${m.length} cocok · ${sel.length} dipilih` : "";
+  $c("aksiCari").style.display = m.length ? "flex" : "none";
+  $c("pilihCari").innerHTML = m.length
+    ? m.map(x=>{ const on=!cariState.unchecked.has(x.m.id); return `<button type="button" class="cr-pc ${on?"on":""}" data-id="${x.m.id}">${on?"✓ ":""}${escapeHtml(x.m.name)} <small>· ${escapeHtml(x.k)}</small></button>`; }).join("")
+    : `<div class="empty-state"><span class="emoji">🔍</span>${terms.length ? "Nama tidak ditemukan." : "Ketik satu atau beberapa nama di atas untuk mencari."}</div>`;
+  $c("cardHasilCari").style.display = (sel.length || pc) ? "block" : "none";
+  cariRefreshBar();
+  $c("hasilCari").innerHTML = sel.length ? sel.map(({k,m})=>cariCardHTML(k,m)).join("")
+    : `<div class="empty-state"><span class="emoji">👥</span>Belum ada siswa yang dipilih.</div>`;
+}
+function cariRefreshBar(){
+  const pc=cariPendCount(), bar=document.querySelector("#cardHasilCari .cr-bar");
+  $c("cariPendInfo").textContent = pc ? `✏️ ${pc} perubahan belum disimpan` : "Belum ada perubahan.";
+  if(bar) bar.classList.toggle("dirty", pc>0);
+}
+function cariRowChanged(row){
+  const p=PEND(), key=row.dataset.key, mid=row.dataset.mid;
+  return row.dataset.kind==="g"
+    ? (p.gval[key+"|"+mid]!==undefined || p.gmeet[key]!==undefined || p.gdate[key]!==undefined)
+    : (p.astat[key+"|"+mid]!==undefined || p.adate[key]!==undefined);
+}
+function cariMarkRows(){ document.querySelectorAll("#hasilCari .cr-row").forEach(r=>r.classList.toggle("is-changed", cariRowChanged(r))); cariRefreshBar(); }
+function cariSetPend(map,k,val,orig){ if(String(val)===String(orig)) delete map[k]; else map[k]=val; }
+function cariSyncSiblings(sel,key,t){ document.querySelectorAll(`#hasilCari ${sel}[data-key="${key}"]`).forEach(x=>{ if(x!==t) x.value=t.value; }); }
+
+$c("hasilCari").addEventListener("input", e=>{
+  const t=e.target; if(!t.matches || !t.matches("input")) return;
+  const p=PEND();
+  if(t.classList.contains("cr-g-val")) cariSetPend(p.gval, t.dataset.vk, t.value, t.dataset.orig);
+  else if(t.classList.contains("cr-g-meet")){ cariSetPend(p.gmeet, t.dataset.key, t.value, t.dataset.orig); cariSyncSiblings(".cr-g-meet", t.dataset.key, t); }
+  else if(t.classList.contains("cr-g-date")){ cariSetPend(p.gdate, t.dataset.key, t.value, t.dataset.orig); cariSyncSiblings(".cr-g-date", t.dataset.key, t); }
+  else if(t.classList.contains("cr-a-date")){ cariSetPend(p.adate, t.dataset.key, t.value, t.dataset.orig); cariSyncSiblings(".cr-a-date", t.dataset.key, t); }
+  cariMarkRows();
+});
+$c("hasilCari").addEventListener("click", e=>{
+  const b=e.target.closest(".status-btn"); if(!b) return;
+  const group=b.parentElement, ak=group.dataset.ak, orig=group.dataset.orig;
+  const active=group.querySelector(".status-btn.active");
+  const cur=active ? active.dataset.s : "";
+  const nw = cur===b.dataset.s ? "" : b.dataset.s;
+  group.querySelectorAll(".status-btn").forEach(x=>x.classList.toggle("active", x.dataset.s===nw));
+  const lbl=group.parentElement.querySelector(".cr-none"); if(lbl) lbl.textContent = nw ? "" : "(belum diisi)";
+  cariSetPend(PEND().astat, ak, nw, orig);
+  cariMarkRows();
+});
+$c("pilihCari").addEventListener("click", e=>{
+  const b=e.target.closest(".cr-pc"); if(!b) return;
+  const id=b.dataset.id; if(cariState.unchecked.has(id)) cariState.unchecked.delete(id); else cariState.unchecked.add(id);
+  renderCari();
+});
+function cariPilihSemua(){ cariState.unchecked.clear(); renderCari(); }
+function cariKosongkan(){ cariMatches().forEach(x=>cariState.unchecked.add(x.m.id)); renderCari(); }
+$c("inputCariBanyak").addEventListener("input", renderCari);
+$c("selectKelasCari").addEventListener("change", ()=>{ cariFillMapel(); renderCari(); });
+$c("selectMapelCari").addEventListener("change", renderCari);
+
+function batalCari(){
+  if(!cariPendCount()){ showToast("ℹ️ Belum ada perubahan"); return; }
+  cariState.pend={astat:{}, adate:{}, gval:{}, gmeet:{}, gdate:{}};
+  renderCari(); showToast("↺ Perubahan dibatalkan");
+}
+
+function simpanSemuaCari(){
+  const p=PEND();
+  if(!cariPendCount()){ showToast("ℹ️ Belum ada perubahan untuk disimpan"); return; }
+  const aKeys=new Set([...Object.keys(p.adate), ...Object.keys(p.astat).map(x=>x.split("|")[0])]);
+  const gKeys=new Set([...Object.keys(p.gmeet), ...Object.keys(p.gdate), ...Object.keys(p.gval).map(x=>x.split("|")[0])]);
+  const planA=[], planG=[];
+  for(const k of aKeys){
+    const rec=records[k]; if(!rec) continue;
+    const nd = p.adate[k]!==undefined ? p.adate[k] : rec.date;
+    if(!nd){ showToast("⚠️ Tanggal absensi tidak boleh kosong"); return; }
+    planA.push({old:k, rec, nd, nk:rec.scheduleId+"_"+nd});
+  }
+  for(const k of gKeys){
+    const rec=grades[k]; if(!rec) continue;
+    const nm = p.gmeet[k]!==undefined ? String(p.gmeet[k]).trim() : String(rec.meeting);
+    if(!/^\d+$/.test(nm) || Number(nm)<1){ showToast("⚠️ Pertemuan harus berupa angka minimal 1"); return; }
+    const meet=String(Number(nm));
+    planG.push({old:k, rec, nm:meet, nd:(p.gdate[k]!==undefined ? p.gdate[k] : (rec.date||"")), nk:rec.scheduleId+"_P"+meet});
+  }
+  let konflik=0, dobel=false;
+  const cek=(list,store)=>{
+    const moving=new Set(list.filter(o=>o.nk!==o.old).map(o=>o.old)), seen=new Set();
+    list.forEach(o=>{
+      if(o.nk===o.old) return;
+      if(seen.has(o.nk)) dobel=true;
+      seen.add(o.nk);
+      if(store[o.nk] && !moving.has(o.nk)) konflik++;
+    });
+  };
+  cek(planA,records); cek(planG,grades);
+  if(dobel){ showToast("⚠️ Dua perubahan menuju tanggal/pertemuan yang sama. Periksa kembali"); return; }
+  if(konflik && !confirm(`${konflik} tanggal/pertemuan tujuan sudah berisi data. Timpa data yang ada dengan perubahan ini?`)) return;
+
+  let changed=0;
+  planA.forEach(o=>{
+    Object.keys(p.astat).forEach(ak=>{
+      const [k,mid]=ak.split("|"); if(k!==o.old) return;
+      o.rec.data=o.rec.data||{};
+      if(p.astat[ak]==="") delete o.rec.data[mid]; else o.rec.data[mid]=p.astat[ak];
+      changed++;
+    });
+    if(o.nd!==o.rec.date){ o.rec.date=o.nd; changed++; }
+  });
+  planG.forEach(o=>{
+    Object.keys(p.gval).forEach(vk=>{
+      const [k,mid]=vk.split("|"); if(k!==o.old) return;
+      o.rec.data=o.rec.data||{};
+      const v=p.gval[vk];
+      if(v===""||isNaN(Number(v))) delete o.rec.data[mid]; else o.rec.data[mid]=Math.max(0,Math.min(100,Number(v)));
+      changed++;
+    });
+    if(o.nm!==String(o.rec.meeting)){ o.rec.meeting=o.nm; changed++; }
+    if(o.nd!==(o.rec.date||"")){ o.rec.date=o.nd; changed++; }
+  });
+  const pindah=(list,store)=>{ const mv=list.filter(o=>o.nk!==o.old); mv.forEach(o=>{ delete store[o.old]; }); mv.forEach(o=>{ store[o.nk]=o.rec; }); };
+  pindah(planA,records); pindah(planG,grades);
+
+  saveRecords(); saveGrades();
+  cariState.pend={astat:{}, adate:{}, gval:{}, gmeet:{}, gdate:{}};
+  renderCari(); renderAbsenList(); renderNilaiList(); renderRiwayat(); renderRiwayatNilai();
+  showToast(`✅ ${changed} perubahan disimpan`);
+}
+
+function cariRowsFor(sel){
+  const Rg=[], N=[], H=[];
+  sel.forEach(({k,m})=>{
+    const st=cariStudentStats(k,m);
+    Rg.push({"Kelas":k,"Nama Murid":m.name,"Rata Nilai":st.avg==null?"-":Number(st.avg.toFixed(1)),"Hadir":st.n.H,"Izin":st.n.I,"Sakit":st.n.S,"Alpa":st.n.A,"% Hadir":st.persen});
+    cariSchedulesFor(k).forEach(s=>{
+      const {att,gr}=cariSessions(s);
+      gr.forEach(([,r])=>{ const v=r.data && r.data[m.id]; if(nilaiAda(v)) N.push({"Kelas":k,"Nama Murid":m.name,"Mata Pelajaran":s.subject,"Pertemuan":r.meeting,"Tanggal":r.date||"","Nilai":Number(v)}); });
+      att.forEach(([,r])=>{ const v=r.data && r.data[m.id]; if(v) H.push({"Kelas":k,"Nama Murid":m.name,"Mata Pelajaran":s.subject,"Tanggal":r.date,"Status":STATUS_LABEL[v]}); });
+    });
+  });
+  return {Rg,N,H};
+}
+function unduhExcelCari(){
+  const sel=cariPicked();
+  if(!sel.length){ showToast("⚠️ Belum ada siswa yang dipilih"); return; }
+  if(cariPendCount()){ showToast("⚠️ Simpan perubahan dulu sebelum mengunduh"); return; }
+  if(typeof XLSX==="undefined"){ showToast("⚠️ Gagal memuat pustaka Excel — cek koneksi internet lalu coba lagi"); return; }
+  const {Rg,N,H}=cariRowsFor(sel), wb=XLSX.utils.book_new();
+  [["Ringkasan",Rg],["Nilai",N],["Kehadiran",H]].forEach(([nm,a])=>{
+    const ws=XLSX.utils.json_to_sheet(a.length?a:[{"Info":"Tidak ada data"}]);
+    ws["!cols"]=[{wch:12},{wch:26},{wch:34},{wch:12},{wch:14},{wch:10},{wch:10},{wch:10}];
+    XLSX.utils.book_append_sheet(wb,ws,nm);
+  });
+  XLSX.writeFile(wb,`Nilai_Hadir_Siswa_${todayISO()}.xlsx`);
+  showToast("✅ File Excel diunduh");
+}
+function cetakCari(){
+  const sel=cariPicked();
+  if(!sel.length){ showToast("⚠️ Belum ada siswa yang dipilih"); return; }
+  if(cariPendCount()){ showToast("⚠️ Simpan perubahan dulu sebelum mencetak"); return; }
+  const pa=$c("printArea");
+  let h=`<h2 style="font-size:16px;margin:0 0 2px;">Nilai & Daftar Hadir Siswa</h2><div style="font-size:12px;margin-bottom:12px;">${sel.length} siswa · Dicetak: ${formatTanggalIndo(todayISO())}</div>`;
+  sel.forEach(({k,m})=>{
+    const st=cariStudentStats(k,m);
+    h+=`<div class="cp-stu"><h3 style="font-size:14px;margin:10px 0 2px;">${escapeHtml(m.name)} — ${escapeHtml(k)}</h3>
+      <div style="font-size:11.5px;margin-bottom:4px;">Rata-rata nilai: <b>${fmtRata(st.avg)}</b> · Hadir ${st.n.H} · Izin ${st.n.I} · Sakit ${st.n.S} · Alpa ${st.n.A} · % Hadir ${st.persen}</div>`;
+    cariSchedulesFor(k).forEach(s=>{
+      const {att,gr}=cariSessions(s);
+      const gRows=gr.map(([,r])=>({r,v:r.data && r.data[m.id]})).filter(x=>nilaiAda(x.v));
+      const aRows=att.map(([,r])=>({r,v:r.data && r.data[m.id]})).filter(x=>x.v);
+      if(!gRows.length && !aRows.length) return;
+      h+=`<div style="font-size:12px;font-weight:700;margin:6px 0 2px;">${escapeHtml(s.subject)}</div>`;
+      if(gRows.length) h+=`<table><thead><tr><th>Pertemuan</th><th>Tanggal</th><th>Nilai</th></tr></thead><tbody>${gRows.map(x=>`<tr><td>${escapeHtml(String(x.r.meeting))}</td><td>${x.r.date?formatTanggalIndo(x.r.date):"-"}</td><td>${x.v}</td></tr>`).join("")}</tbody></table>`;
+      if(aRows.length) h+=`<table><thead><tr><th>Tanggal</th><th>Status</th></tr></thead><tbody>${aRows.map(x=>`<tr><td>${formatTanggalIndo(x.r.date)}</td><td>${STATUS_LABEL[x.v]}</td></tr>`).join("")}</tbody></table>`;
+    });
+    h+=`</div>`;
+  });
+  pa.innerHTML=h; pa.classList.add("cari-print"); document.body.classList.add("cari-printing");
+  window.addEventListener("afterprint",()=>{ pa.classList.remove("cari-print"); document.body.classList.remove("cari-printing"); },{once:true});
+  setTimeout(()=>window.print(),150);
+}
+
+(function hookNavCari(){
+  const _gv = gantiView;
+  gantiView = function(name){ _gv(name); if(name==="cari") loadCari(); };
+})();
+cariFillSelects();
+
 </script>
 <style id="interaction-scroll-fix">
 /* ===== INTERACTION FIX ===== */
@@ -4026,6 +4424,46 @@ select,
   }
   #backfillAbsenList,
   #backfillMeetingList{max-height:54vh !important;}
+}
+</style>
+<style id="cari-edit-rata-nilai">
+/* ===== TAMBAHAN: rata-rata nilai & cari/edit banyak siswa ===== */
+.cr-live{margin-top:12px;padding:10px 12px;border:1px solid #294760;border-radius:12px;background:#0a1a2b;color:#eaf6ff;font-size:13.5px}
+.cr-live b{color:#55f0cf;font-size:16px}
+.cr-pc{display:inline-flex;align-items:center;gap:4px;border:1.5px solid #213b58;border-radius:20px;padding:8px 12px;margin:0 6px 8px 0;background:#0b192e;color:#98acc6;font:inherit;font-size:13.5px;cursor:pointer;text-align:left}
+.cr-pc small{opacity:.8}
+.cr-pc.on{background:#123f41;color:#55f0cf;border-color:#1eaa96}
+.cr-bar{position:sticky;top:6px;z-index:30;background:#0a1a2b;border:1px solid #294760;border-radius:14px;padding:10px 12px;margin-bottom:10px}
+.cr-bar-info{font-size:13px;color:#8fa9bf}
+.cr-bar.dirty{border-color:#e2a63b}
+.cr-bar.dirty .cr-bar-info{color:#ffc44d;font-weight:700}
+.cr-card{border:1px solid #294760;border-radius:14px;padding:12px;margin-top:12px;background:#0a1a2b}
+.cr-card h3{margin:0 0 4px;font-size:16px;color:#eaf4ff}
+.cr-card h3 small{font-weight:500;color:#8fa9bf;font-size:12.5px}
+.cr-chips{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0 4px}
+.cr-chip{background:#0b1f35;border:1px solid #294b66;border-radius:12px;padding:8px 4px;text-align:center;font-size:11.5px;color:#91abc0}
+.cr-chip b{display:block;font-size:19px;color:#eaf6ff}
+.cr-sched{margin:14px 0 4px;font-weight:700;color:#8deaf6;font-size:14px}
+.cr-sched small{font-weight:500;color:#8fa9bf}
+.cr-sub{margin:10px 0 6px;font-size:12.5px;font-weight:700;color:#8fa9bf}
+.cr-row{border:1px solid #294760;border-radius:12px;padding:10px;margin-bottom:8px;background:#091b2d}
+.cr-row.is-changed{border-color:#e2a63b;box-shadow:0 0 0 2px rgba(226,166,59,.15)}
+.cr-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.cr-att{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:end}
+.cr-row label{font-size:11px;margin:0 0 3px;display:block}
+.cr-row input{width:100%;min-width:0;padding:9px 10px;border-radius:10px;border:1.5px solid #294760;font:inherit;font-size:14px}
+.cr-row .status-group{display:flex;gap:6px}
+.cr-none{color:#ffc44d}
+#tagCari:empty{display:none}
+@media(max-width:420px){nav.bottomnav button{font-size:9px !important;padding-left:1px !important;padding-right:1px !important;letter-spacing:-.2px}nav.bottomnav button .ic{font-size:17px !important}}
+@media(max-width:480px){.cr-att{grid-template-columns:1fr}.cr-fields{grid-template-columns:1fr 1fr}.cr-fields>div:last-child{grid-column:1/-1}}
+@media print{
+  body.cari-printing{background:#fff!important}
+  #printArea.cari-print,#printArea.cari-print *{color:#111!important;background:#fff!important;text-shadow:none!important;box-shadow:none!important}
+  #printArea.cari-print table{width:100%;border-collapse:collapse;margin:4px 0 10px;font-size:10.5px}
+  #printArea.cari-print th,#printArea.cari-print td{border:1px solid #777!important;padding:4px 6px;text-align:left}
+  #printArea.cari-print th{background:#e9edf2!important;font-weight:700}
+  #printArea.cari-print .cp-stu{break-inside:avoid-page;margin-bottom:14px}
 }
 </style>
 <script id="final-interaction-patch-js">
