@@ -4469,6 +4469,765 @@ select,
 <script id="final-interaction-patch-js">
 /* BUGFIX: student selection is handled by the original stable renderer above. */
 </script>
+<!-- =====================================================================
+     TAMBAHAN BARU: TEMA BIRU LANGIT UNTUK SELURUH HALAMAN
+     Lapisan visual saja (hanya layar, tidak memengaruhi cetak/PDF).
+     Tidak mengubah HTML/JS/data lama; cukup hapus blok ini untuk kembali ke tema lama.
+     ===================================================================== -->
+<style id="sky-global-theme">
+@media screen{
+:root{
+  --sky-50:#f0f9ff; --sky-100:#e0f2fe; --sky-200:#bae6fd; --sky-300:#7dd3fc; --sky-400:#38bdf8;
+  --sky-500:#0ea5e9; --sky-600:#0284c7; --sky-700:#0369a1; --sky-800:#075985; --sky-900:#0c4a6e;
+  --ink:#0c4a6e; --ink-soft:#0369a1; --paper:#e0f2fe; --card:#ffffff; --line:#bae6fd;
+  --teal:#0ea5e9; --teal-dark:#075985; --teal-soft:#e0f2fe; --amber:#0284c7; --amber-soft:#e0f2fe;
+}
+
+/* ---------- Latar halaman ---------- */
+html:root{background:#e0f2fe !important;color:#0c4a6e !important;}
+html body{
+  color:#0c4a6e !important;
+  background:
+    radial-gradient(900px 420px at 8% -8%,rgba(56,189,248,.35),transparent 65%),
+    radial-gradient(760px 360px at 94% 2%,rgba(125,211,252,.45),transparent 62%),
+    linear-gradient(180deg,#bae6fd 0%,#e0f2fe 38%,#f0f9ff 100%) !important;
+  background-attachment:fixed !important;
+}
+html body:before{
+  opacity:1 !important;
+  background-image:
+    linear-gradient(rgba(14,165,233,.07) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(14,165,233,.07) 1px,transparent 1px) !important;
+}
+html body:after{background:radial-gradient(circle,rgba(56,189,248,.20),transparent 66%) !important;}
+html body main{color:#0c4a6e !important;}
+
+/* ---------- Header ---------- */
+html body header.topbar{
+  background:linear-gradient(135deg,#38bdf8 0%,#0ea5e9 52%,#0284c7 100%) !important;
+  border:1px solid rgba(255,255,255,.55) !important;
+  box-shadow:0 20px 50px rgba(2,132,199,.30),inset 0 1px 0 rgba(255,255,255,.45) !important;
+}
+html body header.topbar .eyebrow{color:#e0f7ff !important;}
+html body header.topbar h1{color:#ffffff !important;text-shadow:0 2px 10px rgba(7,89,133,.25);}
+html body header.topbar h1:after{color:rgba(255,255,255,.78) !important;}
+html body header.topbar .sub{color:#e6f6ff !important;}
+html body header.topbar:before{
+  border-color:rgba(255,255,255,.55) !important;
+  background:
+    radial-gradient(circle at 50% 42%,#ffffff 0 4px,transparent 5px),
+    linear-gradient(90deg,transparent 32%,rgba(255,255,255,.35) 33% 36%,transparent 37% 63%,rgba(255,255,255,.35) 64% 67%,transparent 68%),
+    linear-gradient(0deg,rgba(255,255,255,.10),rgba(255,255,255,.22)) !important;
+  box-shadow:0 0 0 6px rgba(255,255,255,.10),0 0 30px rgba(255,255,255,.25) !important;
+}
+html body header.topbar:after{opacity:.5 !important;filter:brightness(3);}
+
+/* ---------- Kartu ---------- */
+html body .card,
+html body .view .card,
+html body .view > .card{
+  background:linear-gradient(180deg,#ffffff 0%,#f0f9ff 100%) !important;
+  border:1px solid #bae6fd !important;
+  box-shadow:0 12px 30px rgba(14,165,233,.16),inset 0 1px 0 #ffffff !important;
+  color:#0c4a6e !important;
+}
+html body .view > .card:before{
+  background:linear-gradient(90deg,#7dd3fc,#38bdf8,#0284c7) !important;box-shadow:none !important;opacity:1 !important;
+}
+html body .view > .card:after{border-color:rgba(14,165,233,.10) !important;box-shadow:0 0 0 18px rgba(14,165,233,.04),0 0 0 36px rgba(14,165,233,.02) !important;}
+html body .card h2,
+html body .card h3,
+html body .card h4,
+html body .card b,
+html body .card strong{color:#075985 !important;}
+html body .card h2 .tag{background:#e0f2fe !important;color:#0369a1 !important;border:1px solid #7dd3fc !important;}
+html body label{color:#0369a1 !important;}
+html body .hint,
+html body .card .hint{color:#2f7396 !important;}
+html body .divider{background:linear-gradient(90deg,transparent,#7dd3fc,transparent) !important;}
+html body .empty-state{color:#4b88a8 !important;}
+html body .card [style*="color:#5B6B74"],
+html body .card [style*="color:var(--teal-dark)"],
+html body .card [style*="color:#8a6415"]{color:#0369a1 !important;}
+
+/* ---------- Form ---------- */
+html body select,
+html body input[type=date],
+html body input[type=text],
+html body input[type=month],
+html body input[type=number],
+html body textarea,
+html body input,
+html body select:focus,
+html body input:focus,
+html body textarea:focus{
+  background-color:#ffffff !important;color:#0c4a6e !important;
+}
+html body select,
+html body input[type=date],
+html body input[type=text],
+html body input[type=month],
+html body input[type=number],
+html body textarea{
+  background-image:none;
+  border:1.5px solid #7dd3fc !important;box-shadow:inset 0 1px 2px rgba(14,165,233,.08) !important;
+}
+html body select{
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%230284c7' stroke-width='3'><path d='M6 9l6 6 6-6'/></svg>") !important;
+}
+html body select{background-repeat:no-repeat !important;background-position:right 14px center !important;background-size:14px 14px !important;padding-right:38px !important;}
+html body select:focus,
+html body input:focus,
+html body textarea:focus{
+  border-color:#0ea5e9 !important;box-shadow:0 0 0 4px rgba(14,165,233,.22) !important;
+}
+html body select option,
+html body select optgroup{background:#ffffff !important;color:#0c4a6e !important;}
+html body ::placeholder{color:#7aa7c2 !important;opacity:1 !important;}
+html body input[type=checkbox],html body input[type=radio]{accent-color:#0ea5e9;}
+
+/* ---------- Tombol ---------- */
+html body .btn{box-shadow:none !important;}
+html body .btn-primary,
+html body button.btn-primary{
+  background:linear-gradient(135deg,#38bdf8,#0284c7) !important;color:#fff !important;border-color:#0284c7 !important;
+  box-shadow:0 8px 20px rgba(2,132,199,.28) !important;
+}
+html body .btn-outline,
+html body button.btn-outline{background:#ffffff !important;color:#0369a1 !important;border:1.5px solid #38bdf8 !important;}
+html body .btn-outline:hover{background:#e0f2fe !important;border-color:#0ea5e9 !important;box-shadow:0 8px 20px rgba(14,165,233,.18) !important;}
+html body .btn-ghost,
+html body button.btn-ghost{background:#f0f9ff !important;color:#2f7396 !important;border:1.5px solid #bae6fd !important;}
+html body .btn-amber{background:linear-gradient(135deg,#7dd3fc,#0ea5e9) !important;color:#ffffff !important;border-color:#38bdf8 !important;}
+html body .btn-danger{background:#fff1f2 !important;color:#be123c !important;border:1.5px solid #fda4af !important;}
+
+/* ---------- Kartu jadwal ---------- */
+html body .jadwal-ticket{background:#ffffff !important;border-color:#7dd3fc !important;box-shadow:0 8px 22px rgba(14,165,233,.12) !important;}
+html body .jadwal-ticket .info{background:#f0f9ff !important;color:#0c4a6e !important;}
+html body .jadwal-ticket .day-strip{background:linear-gradient(180deg,#38bdf8,#0284c7) !important;color:#ffffff !important;}
+html body .jadwal-ticket .subj{color:#075985 !important;}
+html body .jadwal-ticket .meta{color:#2f7396 !important;}
+html body .jadwal-ticket .meta span{background:#e0f2fe !important;border:1px solid #7dd3fc !important;color:#0369a1 !important;}
+
+/* ---------- Daftar murid / absen / nilai ---------- */
+html body .student-row,
+html body .nilai-row,
+html body .history-item,
+html body .import-item,
+html body .retro-item,
+html body .backfill-att-row,
+html body .backfill-meeting-row{
+  background:#ffffff !important;color:#0c4a6e !important;border-bottom-color:#d3ecfb !important;
+}
+html body .student-row:hover,
+html body .nilai-row:hover,
+html body .history-item:hover,
+html body .import-item:hover,
+html body .retro-item:hover,
+html body .backfill-att-row:hover,
+html body .backfill-meeting-row:hover{background:#e0f2fe !important;}
+html body .backfill-meeting-row{border:1px solid #bae6fd !important;}
+html body .backfill-att-row.is-filled{background:#e6f7ff !important;border-color:#7dd3fc !important;}
+html body #previewImportWrap,html body #previewRekapWrap,html body #previewRekapNilaiWrap,
+html body #listRiwayat,html body #listRiwayatNilai,html body #listDataMurid,html body #listAbsenMurid,
+html body #listNilaiMurid,html body #backfillAbsenList,html body #backfillMeetingList{
+  background-color:transparent !important;color:#0c4a6e !important;
+}
+html body .student-num{background:linear-gradient(135deg,#bae6fd,#e0f2fe) !important;color:#075985 !important;border:1px solid #7dd3fc !important;}
+html body .student-name,
+html body .nilai-row .student-name,
+html body .history-item .hdate,
+html body .backfill-att-title,
+html body .backfill-meeting-title,
+html body .retro-name,
+html body .retro-main,
+html body .retro-section-title{color:#075985 !important;}
+html body .student-name .kls-sub,
+html body .history-item .hcount,
+html body .backfill-att-meta,
+html body .backfill-meeting-date,
+html body .retro-meta{color:#4b88a8 !important;}
+html body .chev{color:#38bdf8 !important;}
+
+html body .status-btn,
+html body .icon-btn,
+html body .quick-nilai-btn,
+html body .edit-status-btn,
+html body .backfill-att-btn,
+html body .retro-status-btn{background:#ffffff !important;color:#2f7396 !important;border:1.5px solid #bae6fd !important;}
+html body .icon-btn:hover,html body .status-btn:hover,html body .quick-nilai-btn:hover{border-color:#0ea5e9 !important;color:#0369a1 !important;background:#e0f2fe !important;}
+html body .quick-nilai-btn.active{background:linear-gradient(135deg,#38bdf8,#0284c7) !important;color:#fff !important;border-color:#0284c7 !important;box-shadow:0 6px 14px rgba(2,132,199,.25) !important;}
+html body .nilai-input,
+html body .backfill-meeting-input,
+html body .retro-grade{background:#ffffff !important;color:#0c4a6e !important;border:1.5px solid #7dd3fc !important;}
+
+/* status kehadiran: warna tetap bermakna (hijau/biru/kuning/merah) tapi versi terang */
+html body .status-btn.active[data-s="H"],html body .edit-status-btn.active[data-s="H"],
+html body .backfill-att-btn.active[data-s="H"],html body .retro-status-btn.active[data-s="H"]{background:#dcfce7 !important;color:#15803d !important;border-color:#22c55e !important;box-shadow:none !important;}
+html body .status-btn.active[data-s="I"],html body .edit-status-btn.active[data-s="I"],
+html body .backfill-att-btn.active[data-s="I"],html body .retro-status-btn.active[data-s="I"]{background:#cfe8ff !important;color:#1d4ed8 !important;border-color:#3b82f6 !important;box-shadow:none !important;}
+html body .status-btn.active[data-s="S"],html body .edit-status-btn.active[data-s="S"],
+html body .backfill-att-btn.active[data-s="S"],html body .retro-status-btn.active[data-s="S"]{background:#fef3c7 !important;color:#b45309 !important;border-color:#f59e0b !important;box-shadow:none !important;}
+html body .status-btn.active[data-s="A"],html body .edit-status-btn.active[data-s="A"],
+html body .backfill-att-btn.active[data-s="A"],html body .retro-status-btn.active[data-s="A"]{background:#ffe4e6 !important;color:#be123c !important;border-color:#f43f5e !important;box-shadow:none !important;}
+
+html body .summary-strip .summary-chip:nth-child(1){background:#dcfce7 !important;color:#15803d !important;}
+html body .summary-strip .summary-chip:nth-child(2){background:#cfe8ff !important;color:#1d4ed8 !important;}
+html body .summary-strip .summary-chip:nth-child(3){background:#fef3c7 !important;color:#b45309 !important;}
+html body .summary-strip .summary-chip:nth-child(4){background:#ffe4e6 !important;color:#be123c !important;}
+html body .summary-chip{box-shadow:none !important;border:1px solid rgba(2,132,199,.10) !important;}
+html body .nilai-badge.bagus,html body .absen-status-badge.st-H{background:#dcfce7 !important;color:#15803d !important;}
+html body .nilai-badge.cukup,html body .absen-status-badge.st-S{background:#fef3c7 !important;color:#b45309 !important;}
+html body .nilai-badge.kurang,html body .absen-status-badge.st-A{background:#ffe4e6 !important;color:#be123c !important;}
+html body .absen-status-badge.st-I{background:#cfe8ff !important;color:#1d4ed8 !important;}
+html body .absen-status-badge.st-none{background:#e0f2fe !important;color:#4b88a8 !important;border-color:#bae6fd !important;}
+
+/* ---------- Perbaikan Absen & Nilai ---------- */
+html body .repair-hub-intro{background:linear-gradient(135deg,#e0f2fe,#f0f9ff 60%,#ffffff) !important;border-color:#7dd3fc !important;color:#0c4a6e !important;}
+html body .repair-hub-intro:after{background:radial-gradient(circle,#bae6fd 0%,transparent 72%) !important;}
+html body .repair-hub-kicker,html body .attendance-backfill-kicker{color:#0284c7 !important;}
+html body .history-grade-icon,html body .attendance-backfill-icon{background:linear-gradient(135deg,#38bdf8,#0284c7) !important;color:#fff !important;border:1px solid #0ea5e9 !important;box-shadow:0 6px 14px rgba(2,132,199,.22) !important;}
+html body .backfill-stat{background:#e0f2fe !important;border:1px solid #bae6fd !important;color:#2f7396 !important;}
+html body .backfill-stat b{color:#075985 !important;}
+html body .backfill-meeting-status.done{background:#dcfce7 !important;color:#15803d !important;}
+html body .backfill-meeting-status.empty{background:#e0f2fe !important;color:#4b88a8 !important;}
+html body .retro-list{background:#ffffff !important;border:1px solid #bae6fd !important;}
+html body .retro-chip{background:#e0f2fe !important;border-color:#bae6fd !important;color:#0369a1 !important;}
+html body .retro-note{background:linear-gradient(90deg,#e0f2fe,#f0f9ff) !important;border-color:#bae6fd !important;color:#2f7396 !important;}
+html body .retro-empty{color:#4b88a8 !important;}
+
+/* ---------- Tabel rekap ---------- */
+html body .rekap-group h4{background:linear-gradient(90deg,#bae6fd,#e0f2fe) !important;color:#075985 !important;border:1px solid #7dd3fc !important;}
+html body .rekap-table-wrap{background:#ffffff !important;border:1px solid #7dd3fc !important;box-shadow:0 8px 22px rgba(14,165,233,.12) !important;}
+html body table.rekap-table th{background:#bae6fd !important;color:#075985 !important;border-color:#7dd3fc !important;}
+html body table.rekap-table td{background:#f5fbff !important;color:#0c4a6e !important;border-color:#d3ecfb !important;}
+html body table.rekap-table tbody tr:nth-child(even) td{background:#eaf6ff !important;}
+html body table.rekap-table td.nama-cell{color:#075985 !important;}
+html body table.rekap-table td.total-h{color:#15803d !important;}
+html body table.rekap-table td.total-i{color:#1d4ed8 !important;}
+html body table.rekap-table td.total-s{color:#b45309 !important;}
+html body table.rekap-table td.total-a{color:#be123c !important;}
+html body table.rekap-table td.total-pct{color:#0369a1 !important;}
+/* tabel nilai yang bisa diedit tetap menang */
+html body #cardPreviewRekapNilai #previewRekapNilaiWrap table.rekap-table td.total-h{color:#0369a1 !important;}
+
+/* ---------- Cari & Edit Banyak Siswa / rata-rata ---------- */
+html body .cr-live{background:#e0f2fe !important;border-color:#7dd3fc !important;color:#0c4a6e !important;}
+html body .cr-live b{color:#0369a1 !important;}
+html body .cr-pc{background:#ffffff !important;color:#2f7396 !important;border-color:#bae6fd !important;}
+html body .cr-pc.on{background:#bae6fd !important;color:#075985 !important;border-color:#0ea5e9 !important;}
+html body .cr-bar{background:#ffffff !important;border-color:#7dd3fc !important;box-shadow:0 6px 16px rgba(14,165,233,.14);}
+html body .cr-bar-info,html body .cr-sub,html body .cr-card h3 small,html body .cr-sched small{color:#4b88a8 !important;}
+html body .cr-bar.dirty{border-color:#f59e0b !important;}
+html body .cr-bar.dirty .cr-bar-info{color:#b45309 !important;}
+html body .cr-card{background:#f5fbff !important;border-color:#bae6fd !important;}
+html body .cr-card h3{color:#075985 !important;}
+html body .cr-chip{background:#e0f2fe !important;border-color:#bae6fd !important;color:#2f7396 !important;}
+html body .cr-chip b{color:#075985 !important;}
+html body .cr-sched{color:#0369a1 !important;}
+html body .cr-row{background:#ffffff !important;border-color:#bae6fd !important;}
+html body .cr-row.is-changed{border-color:#f59e0b !important;}
+html body .cr-row input{background:#ffffff !important;color:#0c4a6e !important;border-color:#7dd3fc !important;}
+html body .cr-none{color:#b45309 !important;}
+
+/* ---------- Modal & toast ---------- */
+html body .modal-overlay{background:rgba(7,89,133,.45) !important;backdrop-filter:blur(6px);}
+html body .modal-box{
+  background:linear-gradient(180deg,#f0f9ff,#e0f2fe) !important;color:#0c4a6e !important;
+  border:1.5px solid #7dd3fc !important;box-shadow:0 24px 60px rgba(7,89,133,.35) !important;
+}
+html body .modal-box h3{color:#075985 !important;}
+html body .modal-list-wrap{background:#ffffff !important;border-color:#bae6fd !important;}
+
+/* tabel & kartu tidak boleh mengubah status/toast lain */
+html body .toast{background:#0c4a6e !important;color:#ffffff !important;border:1px solid #38bdf8 !important;box-shadow:0 12px 30px rgba(7,89,133,.35) !important;}
+
+/* ---------- Navigasi bawah ---------- */
+html body nav.bottomnav{
+  background:rgba(255,255,255,.93) !important;border:1px solid #7dd3fc !important;
+  box-shadow:0 16px 40px rgba(14,165,233,.28) !important;backdrop-filter:blur(12px);
+}
+html body nav.bottomnav button{color:#4b88a8 !important;background:transparent !important;}
+html body nav.bottomnav button .ic{background:#e0f2fe !important;color:#0369a1 !important;border:1px solid #bae6fd !important;}
+html body nav.bottomnav button.active{background:#e0f2fe !important;color:#0284c7 !important;box-shadow:inset 0 0 0 1px #7dd3fc !important;}
+html body nav.bottomnav button.active .ic{background:linear-gradient(135deg,#38bdf8,#0284c7) !important;color:#ffffff !important;border-color:#0ea5e9 !important;box-shadow:0 4px 12px rgba(2,132,199,.30) !important;}
+html body nav.bottomnav button:after{background:linear-gradient(90deg,#38bdf8,#0284c7) !important;}
+html body nav.bottomnav button:hover{background:#f0f9ff !important;}
+}
+</style>
+
+<!-- =====================================================================
+     TAMBAHAN BARU: EDITOR NILAI LANGSUNG (tema biru langit)
+     Tidak mengubah kode lama. Bekerja di atas "Pratinjau Rekap Nilai":
+       - ketuk angka nilai  -> ubah / isi / kosongkan nilai langsung
+       - ketuk judul P2, P3 -> edit nomor pertemuan, tanggal, atau hapus
+       - tombol "Tambah Pertemuan" di bawah tiap tabel
+     ===================================================================== -->
+<style id="sky-grade-editor-css">
+/* ---------- Kartu pratinjau jadi biru langit ---------- */
+#cardPreviewRekapNilai{
+  background:linear-gradient(180deg,#e0f2fe 0%,#f0f9ff 100%) !important;
+  border:1px solid #7dd3fc !important;
+  box-shadow:0 14px 34px rgba(14,165,233,.18) !important;
+  color:#0c4a6e !important;
+}
+#cardPreviewRekapNilai h2,
+#cardPreviewRekapNilai h3{color:#075985 !important;}
+#cardPreviewRekapNilai label{color:#0369a1 !important;}
+#cardPreviewRekapNilai .hint{color:#0369a1 !important;}
+#cardPreviewRekapNilai #inputCariMuridRekapNilai{
+  background:#fff !important;color:#0c4a6e !important;
+  border:1.5px solid #7dd3fc !important;border-radius:12px !important;
+}
+#cardPreviewRekapNilai #inputCariMuridRekapNilai:focus{
+  border-color:#0ea5e9 !important;box-shadow:0 0 0 4px rgba(14,165,233,.22) !important;outline:none !important;
+}
+#cardPreviewRekapNilai #previewRekapNilaiWrap{background:transparent !important;color:#0c4a6e !important;}
+#cardPreviewRekapNilai .rekap-group{background:transparent !important;}
+#cardPreviewRekapNilai .rekap-group h4{
+  background:linear-gradient(90deg,#bae6fd,#e0f2fe) !important;
+  color:#075985 !important;border:1px solid #7dd3fc !important;
+}
+#cardPreviewRekapNilai .rekap-table-wrap{
+  background:#fff !important;border:1px solid #7dd3fc !important;border-radius:14px !important;
+  box-shadow:0 8px 22px rgba(14,165,233,.14) !important;
+}
+#cardPreviewRekapNilai table.rekap-table th{
+  background:#bae6fd !important;color:#075985 !important;border-color:#7dd3fc !important;
+}
+#cardPreviewRekapNilai table.rekap-table td{
+  background:#f5fbff !important;color:#0c4a6e !important;border-color:#d3ecfb !important;
+}
+#cardPreviewRekapNilai table.rekap-table tbody tr:nth-child(even) td{background:#eaf6ff !important;}
+#cardPreviewRekapNilai table.rekap-table tbody tr:hover td{background:#d9efff !important;}
+#cardPreviewRekapNilai table.rekap-table td.total-h{color:#0369a1 !important;font-weight:800 !important;}
+/* kolom nama tetap terlihat saat tabel digeser ke samping */
+#cardPreviewRekapNilai table.rekap-table td.nama-cell,
+#cardPreviewRekapNilai table.rekap-table th:nth-child(2){
+  position:sticky;left:0;z-index:2;box-shadow:3px 0 6px rgba(14,165,233,.12);
+}
+
+/* ---------- Toolbar mode edit ---------- */
+.sky-toolbar{
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  margin:4px 0 14px;padding:12px 14px;
+  background:#fff;border:1.5px solid #7dd3fc;border-radius:16px;
+  box-shadow:0 4px 14px rgba(14,165,233,.10);
+}
+.sky-toggle{
+  display:inline-flex;align-items:center;gap:10px;cursor:pointer;
+  background:#e0f2fe;border:1.5px solid #38bdf8;color:#075985;
+  padding:7px 14px 7px 8px;border-radius:999px;font-weight:700;font-size:13px;line-height:1;
+  font-family:inherit;transition:background .15s,border-color .15s;
+}
+.sky-toggle .sky-knob{
+  width:34px;height:20px;border-radius:999px;background:#94a3b8;position:relative;transition:background .15s;flex:0 0 auto;
+}
+.sky-toggle .sky-knob:after{
+  content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;
+  transition:transform .15s;box-shadow:0 1px 3px rgba(0,0,0,.25);
+}
+.sky-toggle.on{background:#0ea5e9;border-color:#0284c7;color:#fff;}
+.sky-toggle.on .sky-knob{background:#0369a1;}
+.sky-toggle.on .sky-knob:after{transform:translateX(14px);}
+.sky-tip{flex:1 1 220px;font-size:12px;line-height:1.5;color:#0369a1;}
+.sky-tip b{color:#075985;}
+
+/* ---------- Sel & header yang bisa diedit ---------- */
+#previewRekapNilaiWrap:not(.sky-locked) td.sky-cell{cursor:pointer;min-width:46px;transition:background .12s,box-shadow .12s;}
+#cardPreviewRekapNilai #previewRekapNilaiWrap:not(.sky-locked) td.sky-cell:hover{
+  background:#bfe6ff !important;box-shadow:inset 0 0 0 2px #38bdf8;
+}
+#previewRekapNilaiWrap:not(.sky-locked) th.sky-th{cursor:pointer;}
+#previewRekapNilaiWrap:not(.sky-locked) th.sky-th:after{content:" \270E";font-size:10px;opacity:.65;}
+#cardPreviewRekapNilai #previewRekapNilaiWrap:not(.sky-locked) th.sky-th:hover{background:#7dd3fc !important;}
+#cardPreviewRekapNilai td.sky-cell.sky-low{color:#be123c !important;font-weight:700;}
+#cardPreviewRekapNilai td.sky-cell.sky-empty{color:#7aa7c2 !important;}
+#cardPreviewRekapNilai td.sky-cell.sky-editing{padding:3px !important;background:#fff !important;box-shadow:inset 0 0 0 2px #0ea5e9;}
+#cardPreviewRekapNilai td.sky-cell.sky-saved{animation:skyFlash .9s ease;}
+@keyframes skyFlash{0%{background:#7dd3fc}100%{background:transparent}}
+.sky-cell-input{
+  width:56px;max-width:100%;text-align:center;font-weight:700;font-size:13px;line-height:1;font-family:inherit;
+  padding:7px 4px;border-radius:8px;
+  background:#fff !important;color:#0c4a6e !important;
+  border:2px solid #0ea5e9 !important;outline:none !important;
+  box-shadow:0 0 0 4px rgba(14,165,233,.25);
+}
+.sky-addbar{display:flex;justify-content:flex-end;margin-top:8px;}
+#previewRekapNilaiWrap.sky-locked .sky-addbar{display:none;}
+
+/* ---------- Tombol & modal biru langit ---------- */
+.sky-btn{
+  font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;border-radius:12px;
+  padding:10px 16px;border:1.5px solid #7dd3fc;background:#fff;color:#0369a1;
+  transition:transform .1s,box-shadow .15s,background .15s;
+}
+.sky-btn:hover{background:#e0f2fe;transform:translateY(-1px);}
+.sky-btn.primary{background:linear-gradient(135deg,#38bdf8,#0284c7);border-color:#0284c7;color:#fff;box-shadow:0 6px 16px rgba(2,132,199,.28);}
+.sky-btn.primary:hover{background:linear-gradient(135deg,#4cc4fb,#0369a1);}
+.sky-btn.danger{background:#fff1f2;border-color:#fda4af;color:#be123c;}
+.sky-btn.danger:hover{background:#ffe4e6;}
+.sky-btn.small{padding:7px 12px;font-size:12.5px;}
+
+.sky-overlay{
+  position:fixed;inset:0;z-index:150;display:none;align-items:center;justify-content:center;padding:18px;
+  background:rgba(7,89,133,.45);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+}
+.sky-overlay.active{display:flex;}
+.sky-modal{
+  width:min(440px,100%);max-height:calc(100vh - 36px);overflow-y:auto;
+  background:linear-gradient(180deg,#f0f9ff,#e0f2fe);color:#0c4a6e;
+  border:1.5px solid #7dd3fc;border-radius:22px;padding:22px;
+  box-shadow:0 24px 60px rgba(7,89,133,.35);
+}
+.sky-modal h3{margin:0 0 4px;font-size:18px;color:#075985;}
+.sky-modal .sky-sub{font-size:12.5px;color:#0369a1;margin-bottom:16px;line-height:1.45;}
+.sky-modal label{display:block;font-size:12.5px;font-weight:700;color:#0369a1 !important;margin:12px 0 6px;}
+.sky-modal input{
+  width:100%;box-sizing:border-box;padding:12px 14px;font-size:15px;font-family:inherit;
+  background:#fff !important;color:#0c4a6e !important;
+  border:1.5px solid #7dd3fc !important;border-radius:12px;
+}
+.sky-modal input:focus{outline:none;border-color:#0ea5e9 !important;box-shadow:0 0 0 4px rgba(14,165,233,.22);}
+.sky-modal .sky-actions{display:flex;gap:8px;margin-top:20px;flex-wrap:wrap;}
+.sky-modal .sky-actions .sky-btn{flex:1 1 auto;}
+.sky-modal .sky-actions .grow{flex:2 1 100%;}
+</style>
+
+<script id="sky-grade-editor-js">
+(function(){
+  "use strict";
+
+  const wrap = document.getElementById("previewRekapNilaiWrap");
+  const card = document.getElementById("cardPreviewRekapNilai");
+  if(!wrap || !card || typeof buildRekapNilaiData !== "function" ||
+     typeof renderRekapNilaiHTML !== "function" || typeof tampilkanPreviewRekapNilai !== "function") return;
+
+  let editOn = true;          // mode edit aktif secara default
+  let renderedKelas = null;   // kelas yang sedang ditampilkan di pratinjau
+
+  /* ---------------- util ---------------- */
+  const esc = s => (typeof escapeHtml === "function")
+    ? escapeHtml(String(s))
+    : String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const toast = m => { if(typeof showToast === "function") showToast(m); };
+
+  // susunan tabel di pratinjau (urutannya sama persis dengan buildRekapNilaiData)
+  function struktur(){
+    const kelasTarget = renderedKelas === "ALL" ? ROMBEL_LIST : [renderedKelas];
+    const out = [];
+    kelasTarget.forEach(kelas=>{
+      SCHEDULE.filter(s=>s.class===kelas).forEach(s=>{
+        const recs = Object.entries(grades)
+          .filter(([k,r])=>r.scheduleId===s.id)
+          .sort((a,b)=>Number(a[1].meeting)-Number(b[1].meeting));
+        out.push({kelas, s, recs, list:getStudents(kelas)});
+      });
+    });
+    return out;
+  }
+
+  function refreshTabLain(){
+    // sama seperti yang dilakukan simpanEditRiwayatNilai(): sinkronkan daftar nilai & riwayat
+    try{ if(typeof renderRiwayatNilai === "function") renderRiwayatNilai(); }catch(e){}
+    try{ if(typeof renderNilaiList === "function") renderNilaiList(); }catch(e){}
+  }
+
+  /* ---------------- toolbar mode edit ---------------- */
+  const toolbar = document.createElement("div");
+  toolbar.className = "sky-toolbar";
+  toolbar.innerHTML = `
+    <button type="button" class="sky-toggle on" id="skyToggle" aria-pressed="true">
+      <span class="sky-knob"></span><span class="sky-toggle-label">✏️ Mode Edit: Aktif</span>
+    </button>
+    <div class="sky-tip">Ketuk <b>angka nilai</b> untuk mengubahnya (kosongkan = hapus nilai).
+      Ketuk judul <b>P2, P3…</b> untuk edit pertemuan. Semua perubahan <b>langsung tersimpan</b>.</div>`;
+  const h2 = card.querySelector("h2");
+  if(h2) h2.insertAdjacentElement("afterend", toolbar); else card.insertBefore(toolbar, card.firstChild);
+
+  const toggleBtn = toolbar.querySelector("#skyToggle");
+  toggleBtn.addEventListener("click", ()=>{
+    editOn = !editOn;
+    toggleBtn.classList.toggle("on", editOn);
+    toggleBtn.setAttribute("aria-pressed", String(editOn));
+    toggleBtn.querySelector(".sky-toggle-label").textContent = editOn ? "✏️ Mode Edit: Aktif" : "🔒 Mode Edit: Kunci";
+    wrap.classList.toggle("sky-locked", !editOn);
+    const aktif = wrap.querySelector(".sky-cell-input");
+    if(aktif) aktif.blur();
+  });
+
+  /* ---------------- tandai sel/judul yang bisa diedit ---------------- */
+  function paintCell(td){
+    const r = grades[td.dataset.key];
+    const v = r ? r.data[td.dataset.mid] : undefined;
+    const kosong = (v === undefined || v === null || v === "");
+    td.textContent = kosong ? "-" : String(v);
+    td.classList.toggle("sky-empty", kosong);
+    td.classList.toggle("sky-low", !kosong && Number(v) < 60);
+  }
+
+  function enhance(){
+    const st = struktur();
+    const groups = wrap.querySelectorAll(".rekap-group");
+    if(st.length !== groups.length) return;     // struktur tidak cocok -> jangan disentuh
+    wrap.classList.toggle("sky-locked", !editOn);
+
+    groups.forEach((g, gi)=>{
+      const info = st[gi];
+      g.dataset.sid = info.s.id;
+
+      const ths = g.querySelectorAll("table.rekap-table thead th");
+      info.recs.forEach(([key, rec], j)=>{
+        const th = ths[2 + j];
+        if(!th) return;
+        th.classList.add("sky-th");
+        th.dataset.key = key;
+        th.title = rec.date ? ("Pertemuan ke-" + rec.meeting + " · " + formatTanggalIndo(rec.date)) : ("Pertemuan ke-" + rec.meeting);
+      });
+
+      const trs = g.querySelectorAll("table.rekap-table tbody tr[data-nama]");
+      trs.forEach((tr, ri)=>{
+        const murid = info.list[ri];
+        if(!murid) return;
+        const tds = tr.querySelectorAll("td");
+        info.recs.forEach(([key], j)=>{
+          const td = tds[2 + j];
+          if(!td) return;
+          td.classList.add("sky-cell");
+          td.dataset.key = key;
+          td.dataset.mid = murid.id;
+          paintCell(td);
+        });
+      });
+
+      // tombol tambah pertemuan
+      if(!g.querySelector(".sky-addbar")){
+        const bar = document.createElement("div");
+        bar.className = "sky-addbar";
+        bar.innerHTML = `<button type="button" class="sky-btn small sky-add" data-sid="${info.s.id}">➕ Tambah Pertemuan</button>`;
+        g.appendChild(bar);
+      }
+    });
+  }
+
+  function rerender(){
+    renderRekapNilaiHTML(buildRekapNilaiData(renderedKelas), wrap);
+    enhance();
+    if(typeof filterRekapNilaiMuridList === "function") filterRekapNilaiMuridList();
+  }
+
+  /* ---------------- edit nilai langsung di sel ---------------- */
+  function hitungUlangBaris(tr){
+    const vals = [];
+    tr.querySelectorAll("td.sky-cell").forEach(td=>{
+      const r = grades[td.dataset.key];
+      const v = r ? r.data[td.dataset.mid] : undefined;
+      if(v !== undefined && v !== null && v !== "") vals.push(Number(v));
+    });
+    const t = tr.querySelector("td.total-h");
+    if(t) t.textContent = vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1) : "-";
+  }
+
+  function tetangga(td, arah){
+    const tr = td.parentElement;
+    if(arah === "kanan" || arah === "kiri"){
+      let el = arah === "kanan" ? td.nextElementSibling : td.previousElementSibling;
+      while(el && !el.classList.contains("sky-cell")) el = arah === "kanan" ? el.nextElementSibling : el.previousElementSibling;
+      return el;
+    }
+    const idx = Array.prototype.indexOf.call(tr.children, td);
+    let row = arah === "bawah" ? tr.nextElementSibling : tr.previousElementSibling;
+    while(row){
+      if(row.style.display !== "none"){
+        const c = row.children[idx];
+        if(c && c.classList.contains("sky-cell")) return c;
+      }
+      row = arah === "bawah" ? row.nextElementSibling : row.previousElementSibling;
+    }
+    return null;
+  }
+
+  function mulaiEdit(td){
+    if(!editOn || td.querySelector("input")) return;
+    const key = td.dataset.key, mid = td.dataset.mid;
+    const rec = grades[key];
+    if(!rec) return;
+    const cur = rec.data[mid] !== undefined && rec.data[mid] !== null ? String(rec.data[mid]) : "";
+
+    td.classList.add("sky-editing");
+    td.textContent = "";
+    const inp = document.createElement("input");
+    inp.type = "text";
+    inp.inputMode = "decimal";
+    inp.className = "sky-cell-input";
+    inp.value = cur;
+    inp.setAttribute("aria-label", "Nilai");
+    td.appendChild(inp);
+    inp.focus();
+    inp.select();
+
+    let selesai = false;
+    function akhiri(simpan, arah){
+      if(selesai) return;
+      selesai = true;
+      let berubah = false;
+      if(simpan){
+        const raw = inp.value.trim().replace(",", ".");
+        const r2 = grades[key];
+        if(r2){
+          if(raw === ""){
+            if(r2.data[mid] !== undefined){ delete r2.data[mid]; berubah = true; }
+          } else {
+            let n = Number(raw);
+            if(isNaN(n)){ toast("⚠️ Nilai harus berupa angka 0–100"); }
+            else {
+              n = Math.round(Math.max(0, Math.min(100, n)) * 100) / 100;
+              if(r2.data[mid] !== n){ r2.data[mid] = n; berubah = true; }
+            }
+          }
+        }
+      }
+      td.classList.remove("sky-editing");
+      paintCell(td);
+      if(berubah){
+        saveGrades();
+        hitungUlangBaris(td.parentElement);
+        td.classList.remove("sky-saved");
+        void td.offsetWidth;
+        td.classList.add("sky-saved");
+        refreshTabLain();
+      }
+      if(arah){
+        const next = tetangga(td, arah);
+        if(next) mulaiEdit(next);
+      }
+    }
+
+    inp.addEventListener("keydown", e=>{
+      if(e.key === "Enter"){ e.preventDefault(); akhiri(true, e.shiftKey ? "atas" : "bawah"); }
+      else if(e.key === "Escape"){ e.preventDefault(); akhiri(false); }
+      else if(e.key === "Tab"){ e.preventDefault(); akhiri(true, e.shiftKey ? "kiri" : "kanan"); }
+      else if(e.key === "ArrowDown"){ e.preventDefault(); akhiri(true, "bawah"); }
+      else if(e.key === "ArrowUp"){ e.preventDefault(); akhiri(true, "atas"); }
+    });
+    inp.addEventListener("blur", ()=>akhiri(true));
+  }
+
+  /* ---------------- modal pertemuan (edit / tambah) ---------------- */
+  const overlay = document.createElement("div");
+  overlay.className = "sky-overlay";
+  overlay.innerHTML = `
+    <div class="sky-modal" role="dialog" aria-modal="true">
+      <h3 id="skyModalTitle">Edit Pertemuan</h3>
+      <div class="sky-sub" id="skyModalSub"></div>
+      <label for="skyMeeting">Pertemuan ke-</label>
+      <input type="number" id="skyMeeting" min="1" step="1" inputmode="numeric" placeholder="Contoh: 5">
+      <label for="skyDate">Tanggal Penilaian (opsional)</label>
+      <input type="date" id="skyDate">
+      <div class="sky-actions">
+        <button type="button" class="sky-btn" id="skyCancel">Batal</button>
+        <button type="button" class="sky-btn primary grow" id="skySave">💾 Simpan</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  const elTitle = overlay.querySelector("#skyModalTitle");
+  const elSub   = overlay.querySelector("#skyModalSub");
+  const elMeet  = overlay.querySelector("#skyMeeting");
+  const elDate  = overlay.querySelector("#skyDate");
+  let modal = null; // {mode:"edit"|"add", key, sid}
+
+  function bukaModal(opts){
+    modal = opts;
+    const s = scheduleById(opts.sid);
+    if(!s) return;
+    if(opts.mode === "edit"){
+      const rec = grades[opts.key];
+      if(!rec) return;
+      elTitle.textContent = "✏️ Edit Pertemuan ke-" + rec.meeting;
+      elSub.textContent = s.subject + " — " + s.class + ". Nilai murid tidak berubah, hanya nomor & tanggal pertemuannya. Kolom pertemuan tidak bisa dihapus dari sini.";
+      elMeet.value = rec.meeting || "";
+      elDate.value = rec.date || "";
+    } else {
+      const nums = Object.values(grades).filter(r=>r.scheduleId===s.id).map(r=>Number(r.meeting)).filter(n=>!isNaN(n));
+      elTitle.textContent = "➕ Tambah Pertemuan";
+      elSub.textContent = s.subject + " — " + s.class + ". Pertemuan baru dibuat kosong, lalu isi nilainya langsung di tabel.";
+      elMeet.value = nums.length ? Math.max.apply(null, nums) + 1 : 1;
+      elDate.value = "";
+    }
+    overlay.classList.add("active");
+    setTimeout(()=>{ elMeet.focus(); elMeet.select(); }, 30);
+  }
+  function tutupModal(){ overlay.classList.remove("active"); modal = null; }
+
+  function simpanModal(){
+    if(!modal) return;
+    const nb = (elMeet.value || "").trim();
+    const tgl = elDate.value || "";
+    if(!nb || !/^\d+$/.test(nb) || Number(nb) < 1){ toast("⚠️ Pertemuan harus berupa angka minimal 1"); return; }
+
+    if(modal.mode === "add"){
+      const newKey = modal.sid + "_P" + nb;
+      if(grades[newKey]){ toast("⚠️ Pertemuan ke-" + nb + " sudah ada, ketuk judul P" + nb + " untuk mengeditnya"); return; }
+      grades[newKey] = {scheduleId: modal.sid, meeting: nb, date: tgl, data: {}};
+      saveGrades();
+      tutupModal(); rerender(); refreshTabLain();
+      toast("✅ Pertemuan ke-" + nb + " ditambahkan");
+      return;
+    }
+
+    const rec = grades[modal.key];
+    if(!rec) return;
+    const newKey = rec.scheduleId + "_P" + nb;
+    if(newKey !== modal.key && grades[newKey]){
+      if(!confirm("Pertemuan baru sudah memiliki data nilai. Timpa data yang ada dengan perubahan ini?")) return;
+      delete grades[newKey];
+    }
+    rec.meeting = nb;
+    rec.date = tgl;
+    if(newKey !== modal.key){
+      delete grades[modal.key];
+      grades[newKey] = rec;
+    }
+    saveGrades();
+    tutupModal(); rerender(); refreshTabLain();
+    toast("✅ Pertemuan ke-" + nb + " diperbarui");
+  }
+
+  overlay.querySelector("#skyCancel").addEventListener("click", tutupModal);
+  overlay.querySelector("#skySave").addEventListener("click", simpanModal);
+  overlay.addEventListener("click", e=>{ if(e.target === overlay) tutupModal(); });
+  overlay.addEventListener("keydown", e=>{
+    if(e.key === "Escape") tutupModal();
+    else if(e.key === "Enter" && e.target.tagName === "INPUT"){ e.preventDefault(); simpanModal(); }
+  });
+
+  /* ---------------- event delegasi di tabel ---------------- */
+  wrap.addEventListener("click", e=>{
+    if(!editOn) return;
+    const add = e.target.closest(".sky-add");
+    if(add){ bukaModal({mode:"add", sid: add.dataset.sid}); return; }
+    const th = e.target.closest("th.sky-th");
+    if(th){
+      const rec = grades[th.dataset.key];
+      if(rec) bukaModal({mode:"edit", key: th.dataset.key, sid: rec.scheduleId});
+      return;
+    }
+    const td = e.target.closest("td.sky-cell");
+    if(td && !td.querySelector("input")) mulaiEdit(td);
+  });
+
+  /* ---------------- sambungkan ke tombol "Tampilkan" lama ---------------- */
+  const tampilkanAsli = window.tampilkanPreviewRekapNilai;
+  window.tampilkanPreviewRekapNilai = function(){
+    renderedKelas = selectKelasRekapNilai.value;
+    const hasil = tampilkanAsli.apply(this, arguments);
+    enhance();
+    return hasil;
+  };
+})();
+</script>
+
 </body>
 </html>
 <style id="interaction-scroll-fix">
